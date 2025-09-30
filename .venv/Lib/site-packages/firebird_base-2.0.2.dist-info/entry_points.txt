@@ -1,0 +1,2 @@
+[firebird.base.protobuf]
+firebird.base.config = firebird.base.config_pb2:DESCRIPTOR

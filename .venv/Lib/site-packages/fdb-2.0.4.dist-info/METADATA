@@ -1,0 +1,130 @@
+Metadata-Version: 2.4
+Name: fdb
+Version: 2.0.4
+Summary: Legacy Python driver for Firebird 2.5
+Project-URL: Home, https://github.com/FirebirdSQL/fdb
+Project-URL: Documentation, https://fdb.rtfd.io
+Project-URL: Issues, https://github.com/FirebirdSQL/fdb/issues
+Project-URL: Source, https://github.com/FirebirdSQL/fdb
+Author-email: Pavel Cisar <pcisar@users.sourceforge.net>
+License: =======
+        LICENSE
+        =======
+        
+        The following contributors hold Copyright (c) over their respective portions
+        of code and documentation:
+        
+        The main portion of initial code (~95%); Current maintainer:
+        
+            Pavel Cisar <pcisar@users.sourceforge.net>
+        
+        Contributors:
+        
+        [Initial trace API & nbackup support; Python 3 support]
+            Philippe Makowski <pmakowski@espelida.com>
+        
+        Some code in inital version is Python code from KInterbasDB 3.3.0.
+        As it's very hard to find out who exactly was the original author of used code,
+        here is the full list of KInterbasDB contributors:
+        
+        [Author of original version; maintained through version 2.0:]
+        
+            1998-2001 [alex] Alexander Kuznetsov <alexan@users.sourceforge.net>
+        
+        [Author of ~90% of current code, most of current documentation; maintained through version 3.3:]
+        
+            2002-2007 [dsr] David S. Rushby <woodsplitter@rocketmail.com>
+        
+        [Finishing touch to v3.3; New Documentation; Current maintainer:]
+        
+            2008-2011 [paci] Pavel Cisar <pcisar@users.sourceforge.net>
+        
+        [Significant Contributors:]
+        
+            2001-2002 [maz] Marek Isalski <kinterbasdb@maz.nu>
+        
+                Marek made important first steps in removing the limitations of version 2.0
+                in preparation for version 3.0.
+        
+            2001 [eac] Evgeny A. Cherkashin <eugeneai@icc.ru>
+        
+                Evgeny wrote the first version of the distutils build script,
+                which was included in a 2.x point release.
+        
+            2001-2002 [janez] Janez Jere <janez.jere@void.si>
+        
+                Janez contributed several bugfixes, including fixes for the date and time
+                parameter conversion code in preparation for version 3.0.
+        
+        Permission to use, copy, modify, and distribute this software and its documentation
+        for any purpose and without fee or royalty is hereby granted, provided that the above
+        copyright notice appears in all copies and that both the copyright notice and
+        this permission notice appear in supporting documentation or portions thereof,
+        including modifications, that you make.
+        
+        The authors disclaim all warranties with regard to this software, including all
+        implied warranties of merchantability and fitness. In no event shall any author
+        be liable for any special, indirect or consequential damages or any damages whatsoever
+        resulting from loss of use, data or profits, whether in an action of contract,
+        negligence or other tortious action, arising out of or in connection with the use
+        or performance of this software.
+License-File: LICENSE
+Keywords: Firebird,RDBMS,driver
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Microsoft :: Windows
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Topic :: Database
+Classifier: Topic :: Software Development
+Requires-Python: !=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,<4,>=2.7
+Description-Content-Type: text/markdown
+
+# FDB - legacy Firebird driver for Python
+
+[![PyPI - Version](https://img.shields.io/pypi/v/fdb.svg)](https://pypi.org/project/fdb)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/fdb.svg)](https://pypi.org/project/fdb)
+[![Hatch project](https://img.shields.io/badge/%F0%9F%A5%9A-Hatch-4051b5.svg)](https://github.com/pypa/hatch)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/fdb)](https://pypi.org/project/fdb)
+[![Libraries.io SourceRank](https://img.shields.io/librariesio/sourcerank/pypi/fdb)](https://libraries.io/pypi/fdb)
+
+## Important
+
+This package provides LEGACY Python Database API 2.0-compliant driver for the open
+source relational database **Firebird version 2.5.**, with **limited support for Firebird 3.0**.
+It does NOT support Firebird 4 and newer.
+
+If you are using Firebird 3 or newer, please use the OFFICIAL Python driver for Firebird
+called [firebird-driver](https://pypi.org/project/firebird-driver/).
+
+The FDB driver is not actively developed and its maintenance is very limited.
+
+-----
+
+**Table of Contents**
+
+- [Installation](#installation)
+- [License](#license)
+- [Documentation](#documentation)
+
+## Installation
+
+```console
+pip install fdb
+```
+
+## License
+
+`fdb` is distributed under the terms of the [MIT](https://spdx.org/licenses/MIT.html) license.
+
+## Documentation
+
+The documentation for this package is available at [https://fdb.readthedocs.io](https://fdb.readthedocs.io)
+

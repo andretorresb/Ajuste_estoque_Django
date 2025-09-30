@@ -1,0 +1,1065 @@
+<!doctype html>
+<html lang="pt-br">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#0d6efd" />
+  <title>Ajuste de Estoque</title>
+  {% load static %}
+  <link rel="manifest" href="{% static 'manifest.json' %}">
+  <style>
+    :root{
+      --gap:16px;
+      --radius:12px;
+      --border:#ddd;
+      --muted:#666;
+      --ok:#0a7;
+      --err:#b00;
+      --primary:#111;
+      --light:#fff;
+    }
+    
+    *{box-sizing:border-box}
+    body{
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; 
+      margin:0;
+      padding:16px;
+      line-height:1.35;
+      background: #f5f5f5;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .row{display:flex; gap:var(--gap); align-items:flex-start; flex-wrap:wrap;}
+    .col{flex:1 1 420px; min-width:280px}
+    .card{
+      border:1px solid var(--border); 
+      border-radius:var(--radius); 
+      padding:16px;
+      background: var(--light);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    input,button,select{
+      font-size:16px; 
+      padding:12px; 
+      height:44px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    
+    input,select{width:100%}
+    
+    .rowline{
+      display:flex; 
+      gap:8px; 
+      align-items:center;
+      flex-wrap: wrap;
+    }
+    
+    .btn{
+      border:1px solid var(--primary); 
+      border-radius:var(--radius); 
+      background:var(--primary); 
+      color:var(--light); 
+      cursor:pointer; 
+      min-width:110px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .btn:hover {
+      opacity: 0.9;
+    }
+    
+    .btn.light{
+      background:var(--light); 
+      color:var(--primary);
+    }
+    
+    .btn.scanner {
+      background: #0066cc;
+      border-color: #0066cc;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    
+    .btn:active{transform:scale(.98)}
+    
+    ul{
+      list-style:none; 
+      padding:0; 
+      margin:10px 0 0; 
+      max-height: 45vh; 
+      overflow:auto; 
+      border:1px solid var(--border); 
+      border-radius:var(--radius);
+      background: var(--light);
+    }
+    
+    li{
+      padding:12px; 
+      border-bottom:1px solid #eee; 
+      cursor:pointer;
+      transition: background 0.2s ease;
+    }
+    
+    li:hover {
+      background: #f8f9fa;
+    }
+    
+    li:last-child{border-bottom:0}
+    
+    .muted{color:var(--muted)}
+    .ok{color:var(--ok); font-weight:600}
+    .err{color:var(--err); font-weight:600}
+    
+    .pill{
+      padding:4px 12px; 
+      background:#06c; 
+      color:#fff; 
+      border-radius:999px; 
+      font-size:12px;
+      font-weight: 500;
+    }
+    
+    .user-controls { 
+      display:flex; 
+      gap:8px; 
+      align-items:center; 
+    }
+    
+    .small-btn { 
+      padding:8px 12px; 
+      height:auto; 
+      border-radius:8px; 
+      font-size:14px; 
+      min-width:0; 
+      cursor:pointer 
+    }
+    
+    .badge-current { 
+      background:#222; 
+      color:#fff; 
+      padding:6px 12px; 
+      border-radius:999px; 
+      font-size:13px; 
+      display:inline-block 
+    }
+    
+    /* Header Styles */
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    /* Search Section */
+    .search-section {
+      background: var(--light);
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    
+    /* Scanner Section */
+    .scanner-section {
+      background: var(--light);
+      padding: 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    
+    .scanner-info {
+      background: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: var(--radius);
+      padding: 16px;
+      margin: 12px 0;
+      text-align: left;
+    }
+    
+    .scanner-info ul {
+      margin: 8px 0;
+      padding-left: 20px;
+    }
+    
+    .scanner-info li {
+      padding: 4px 0;
+      border-bottom: none;
+    }
+    
+    .file-input {
+      display: none;
+    }
+    
+    .file-label {
+      display: inline-block;
+      padding: 12px 20px;
+      background: #0066cc;
+      color: white;
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin: 8px 0;
+    }
+    
+    .camera-preview {
+      width: 100%;
+      max-width: 400px;
+      height: 300px;
+      background: #000;
+      border-radius: var(--radius);
+      margin: 0 auto;
+      display: none;
+    }
+    
+    /* Modal Styles */
+    .overlay { 
+      position:fixed; 
+      top:0;
+      left:0;
+      right:0;
+      bottom:0;
+      background: rgba(0,0,0,0.55); 
+      display:flex; 
+      align-items:center; 
+      justify-content:center; 
+      z-index:9999;
+      padding: 20px;
+    }
+    
+    .modal { 
+      width:100%;
+      max-width: 400px;
+      background:#fff; 
+      border-radius:16px; 
+      padding:24px; 
+      box-shadow:0 10px 40px rgba(0,0,0,0.4);
+    }
+    
+    .modal h3 { 
+      margin:0 0 16px; 
+      font-size:20px; 
+      text-align: center;
+      font-weight: 600;
+    }
+    
+    .modal .note { 
+      color:#666; 
+      font-size:14px; 
+      margin-bottom:20px;
+      text-align: center;
+      line-height: 1.4;
+    }
+    
+    .modal .actions { 
+      display:flex; 
+      gap:8px; 
+      justify-content:center; 
+      margin-top:20px;
+    }
+    
+    .modal input, .modal select { 
+      height:44px; 
+      font-size:16px; 
+      padding:8px 12px; 
+      margin-bottom: 16px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      width: 100%;
+    }
+    
+    .modal label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 500;
+      color: #333;
+    }
+    
+    .modal .err { 
+      color:var(--err); 
+      margin-top:8px; 
+      font-weight:600;
+      text-align: center;
+      font-size: 14px;
+    }
+    
+    /* Product Detail */
+    .product-detail {
+      background: var(--light);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    
+    .stock-info {
+      background: #f8f9fa;
+      padding: 16px;
+      border-radius: var(--radius);
+      margin: 16px 0;
+      border-left: 4px solid #06c;
+    }
+    
+    .adjustment-section {
+      margin-top: 20px;
+    }
+    
+    .adjustment-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    
+    .quantity-controls {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 20px 0;
+      justify-content: center;
+    }
+    
+    .quantity-btn {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      font-weight: bold;
+      border: 2px solid var(--primary);
+      background: var(--light);
+      color: var(--primary);
+      cursor: pointer;
+    }
+    
+    .quantity-display {
+      font-size: 24px;
+      font-weight: bold;
+      min-width: 60px;
+      text-align: center;
+      padding: 8px 12px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--light);
+    }
+    
+    /* Mobile Responsive */
+    @media (max-width: 768px){
+      body{
+        margin:0;
+        padding:12px;
+      }
+      
+      .modal { 
+        width:100%;
+        max-width: none;
+        margin: 0;
+        border-radius: 16px;
+      }
+      
+      .overlay {
+        padding: 16px;
+        align-items: flex-start;
+        padding-top: 20%;
+      }
+      
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      
+      .header-title {
+        justify-content: space-between;
+      }
+      
+      .user-area {
+        justify-content: center;
+        margin-top: 8px;
+      }
+      
+      .rowline {
+        flex-direction: column;
+      }
+      
+      .rowline > * {
+        width: 100%;
+      }
+      
+      .adjustment-actions {
+        flex-direction: column;
+      }
+      
+      .adjustment-actions .btn {
+        width: 100%;
+      }
+      
+      .quantity-controls {
+        gap: 8px;
+      }
+      
+      .quantity-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 18px;
+      }
+      
+      .quantity-display {
+        font-size: 20px;
+        min-width: 50px;
+      }
+    }
+    
+    a,button{ -webkit-tap-highlight-color:transparent }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-title">
+        <span style="display:flex; gap:12px; align-items:center;">
+          <span>Ajuste de Estoque — API online</span>
+          <span class="pill">Ello</span>
+        </span>
+      </div>
+
+      <div class="user-area">
+        <span id="currentUserBadge" class="badge-current" style="display:none"></span>
+        <button id="btnLogoutTop" class="btn light small-btn" style="display:none;">Sair</button>
+        <button id="btnOpenLogin" class="btn light small-btn">Entrar</button>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- BUSCA -->
+      <div class="col">
+        <div class="search-section">
+          <div class="rowline">
+            <input id="empresa" type="number" inputmode="numeric" min="1" value="1" style="width:90px" title="Empresa">
+            <input id="q" type="search" inputmode="search" autocomplete="off"
+               placeholder="Descrição (ex.: coca) ou código de barras…" style="flex:1" />
+            <button id="btnBuscar" class="btn">Buscar</button>
+            <button id="btnScanner" class="btn scanner" title="Ler código de barras">
+              📷
+            </button>
+          </div>
+          <div class="muted" style="margin-top:8px; font-size:14px">
+            Dica: no leitor, foque o campo e leia o código de barras.
+          </div>
+        </div>
+
+        <!-- Scanner Section -->
+        <div class="scanner-section" id="scannerSection" style="display:none">
+          <h3 style="margin: 0 0 12px 0;">Leitor de Código de Barras</h3>
+          
+          <div class="scanner-info">
+            <strong>Como usar:</strong>
+            <ul>
+              <li><strong>Opção 1:</strong> Use um app de leitor de código de barras no celular e cole o resultado no campo de busca</li>
+              <li><strong>Opção 2:</strong> Tire uma foto do código de barras e faça upload</li>
+              <li><strong>Opção 3:</strong> Digite manualmente o código no campo de busca</li>
+            </ul>
+          </div>
+
+          <!-- Upload de imagem -->
+          <div style="margin: 16px 0;">
+            <label for="barcodeImage" class="file-label">
+              📸 Tirar Foto ou Selecionar Imagem
+            </label>
+            <input type="file" id="barcodeImage" accept="image/*" capture="camera" class="file-input">
+            <div class="muted" style="font-size:12px; margin-top:4px">
+              Tire uma foto do código de barras ou selecione uma imagem
+            </div>
+          </div>
+
+          <div id="scannerResult" style="margin-top:12px; padding:12px; background:#f8f9fa; border-radius:var(--radius); display:none"></div>
+          
+          <div class="actions" style="margin-top:16px">
+            <button id="btnStopScanner" class="btn light">Fechar</button>
+          </div>
+        </div>
+
+        <ul id="lista"></ul>
+      </div>
+
+      <!-- DETALHE + AJUSTE -->
+      <div class="col">
+        <div class="product-detail">
+          <div id="detalhe" class="muted">Selecione um produto à esquerda…</div>
+          <div id="ajuste" style="display:none">
+            <hr style="margin:20px 0">
+            
+            <div class="adjustment-section">
+              <h3 style="margin: 0 0 16px 0; font-size: 18px; text-align: center;">Ajuste de Quantidade</h3>
+              
+              <div class="quantity-controls">
+                <button id="btnDecrease" class="quantity-btn">−</button>
+                <div id="quantityDisplay" class="quantity-display">1</div>
+                <button id="btnIncrease" class="quantity-btn">+</button>
+              </div>
+              
+              <div class="adjustment-actions">
+                <button id="btnAdd" class="btn">Adicionar</button>
+                <button id="btnRem" class="btn light">Remover</button>
+              </div>
+            </div>
+            
+            <div id="msg" style="margin-top:20px; min-height: 20px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal de Confirmação -->
+    <div id="confirmOverlay" class="overlay" style="display:none">
+      <div class="modal" role="dialog" aria-modal="true">
+        <h3 id="confirmTitle">Confirmar Ajuste</h3>
+        <div class="note" id="confirmMessage">
+          Deseja confirmar o ajuste no estoque?
+        </div>
+
+        <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <div style="text-align: center; font-size: 16px;">
+            <strong id="confirmAction"></strong>
+          </div>
+          <div style="text-align: center; font-size: 14px; color: #666; margin-top: 4px;">
+            Quantidade: <strong id="confirmQuantity">1</strong>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="btnCancelConfirm" class="btn light">Cancelar</button>
+          <button id="btnConfirmAction" class="btn">Confirmar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Login -->
+    <div id="loginOverlay" class="overlay" style="display:none">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="loginTitle">
+        <h3 id="loginTitle">Login</h3>
+        <div class="note">
+          Informe usuário e senha (somente usuários ATIVOS)
+        </div>
+
+        <div>
+          <label for="modalUsuario">Usuário</label>
+          <select id="modalUsuario">
+            <option value="">Carregando usuários…</option>
+          </select>
+        </div>
+
+        <div>
+          <label for="modalSenha">Senha</label>
+          <input id="modalSenha" type="password" placeholder="Digite sua senha" autocomplete="current-password">
+        </div>
+
+        <div id="loginError" class="err" style="display:none"></div>
+
+        <div class="actions">
+          <button id="btnCancelLogin" class="btn light">Cancelar</button>
+          <button id="btnModalLogin" class="btn">Entrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = `${location.origin}/api/estoque`;
+    const USERS_API = `${location.origin}/api/usuarios/`;
+    const USERS_AUTH_API = `${location.origin}/api/usuarios/auth/`;
+
+    // Elementos principais
+    const lista = document.getElementById('lista');
+    const q = document.getElementById('q');
+    const detalhe = document.getElementById('detalhe');
+    const ajusteBox = document.getElementById('ajuste');
+    const quantityDisplay = document.getElementById('quantityDisplay');
+    const msg = document.getElementById('msg');
+
+    // Elementos do scanner
+    const btnScanner = document.getElementById('btnScanner');
+    const scannerSection = document.getElementById('scannerSection');
+    const scannerResult = document.getElementById('scannerResult');
+    const barcodeImage = document.getElementById('barcodeImage');
+    const btnStopScanner = document.getElementById('btnStopScanner');
+
+    // Elementos dos modais
+    const loginOverlay = document.getElementById('loginOverlay');
+    const confirmOverlay = document.getElementById('confirmOverlay');
+
+    let produtoSel = null;
+    let quantidadeAtual = 1;
+    let acaoPendente = null;
+
+    const fmt = n => (Math.round((Number(n)||0)*100)/100).toFixed(2).replace('.', ',');
+
+    // Scanner simplificado - funciona em HTTP
+    function iniciarScanner() {
+      console.log('Abrindo leitor de código de barras...');
+      scannerSection.style.display = 'block';
+      scannerResult.style.display = 'none';
+    }
+
+    function pararScanner() {
+      scannerSection.style.display = 'none';
+      scannerResult.style.display = 'none';
+    }
+
+    // Processar imagem (simulação - em produção usar uma biblioteca)
+    function processarImagem(file) {
+      scannerResult.innerHTML = '<span class="muted">Processando imagem... (em desenvolvimento)</span>';
+      scannerResult.style.display = 'block';
+      
+      // Em uma implementação real, aqui você usaria uma biblioteca como:
+      // - QuaggaJS (requer HTTPS)
+      // - JsBarcode
+      // - Ou enviar para um backend que processe a imagem
+      
+      setTimeout(() => {
+        scannerResult.innerHTML = `
+          <span class="muted">Funcionalidade em desenvolvimento.</span><br>
+          <span class="ok">Por favor, digite o código manualmente no campo de busca.</span>
+        `;
+      }, 1500);
+    }
+
+    // Gerenciamento de usuário
+    function setCurrentUser(id, label) {
+      if (id) {
+        localStorage.setItem('ajuste_usuario_id', String(id));
+        localStorage.setItem('ajuste_usuario_label', String(label || id));
+        currentUserBadge.textContent = label || id;
+        currentUserBadge.style.display = 'inline-block';
+        btnLogoutTop.style.display = 'inline-block';
+        btnOpenLogin.style.display = 'none';
+      } else {
+        localStorage.removeItem('ajuste_usuario_id');
+        localStorage.removeItem('ajuste_usuario_label');
+        currentUserBadge.style.display = 'none';
+        btnLogoutTop.style.display = 'none';
+        btnOpenLogin.style.display = '';
+      }
+    }
+
+    function getSavedUser() {
+      const id = localStorage.getItem('ajuste_usuario_id');
+      const label = localStorage.getItem('ajuste_usuario_label');
+      return id ? { id: id, label: label } : null;
+    }
+
+    // Modal functions
+    function showLoginModal() {
+      const loginError = document.getElementById('loginError');
+      const modalSenha = document.getElementById('modalSenha');
+      
+      loginError.style.display = 'none';
+      loginError.textContent = '';
+      modalSenha.value = '';
+      loginOverlay.style.display = 'flex';
+      setTimeout(()=> document.getElementById('modalUsuario').focus(), 60);
+    }
+
+    function hideLoginModal() {
+      loginOverlay.style.display = 'none';
+    }
+
+    function showConfirmModal(acao, quantidade) {
+      const acaoTexto = acao === 'add' ? 'Adicionar' : 'Remover';
+      const acaoDescricao = acao === 'add' ? 'adicionar' : 'remover';
+      
+      confirmTitle.textContent = 'Confirmar Ajuste';
+      confirmAction.textContent = `${acaoTexto} ${quantidade} unidade${quantidade > 1 ? 's' : ''}`;
+      confirmQuantity.textContent = quantidade;
+      confirmMessage.textContent = `Deseja ${acaoDescricao} ${quantidade} unidade${quantidade > 1 ? 's' : ''} no estoque?`;
+      
+      acaoPendente = { tipo: acao, quantidade: quantidade };
+      confirmOverlay.style.display = 'flex';
+    }
+
+    function hideConfirmModal() {
+      confirmOverlay.style.display = 'none';
+      acaoPendente = null;
+    }
+
+    async function carregarUsuariosModal() {
+      const modalUsuario = document.getElementById('modalUsuario');
+      modalUsuario.innerHTML = '<option value="">Carregando...</option>';
+      try {
+        const r = await fetch(USERS_API);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const js = await r.json();
+        modalUsuario.innerHTML = '<option value="">Selecione usuário...</option>';
+        let arr = [];
+        if (Array.isArray(js)) arr = js;
+        else if (js && Array.isArray(js.results)) arr = js.results;
+        else if (js && Array.isArray(js.data)) arr = js.data;
+
+        arr.forEach(u => {
+          const id = u.id ?? u.IDUSUARIO ?? u.idusuario ?? u.ID ?? u.usuario;
+          const name = (u.nome || u.nomecompleto || u.username || u.USUARIO || u.user || u.NOME || u.NOME_COMPLETO || '').toString();
+          const label = name || String(id);
+          const opt = document.createElement('option');
+          opt.value = id ?? '';
+          opt.textContent = label;
+          opt.dataset.label = label;
+          modalUsuario.appendChild(opt);
+        });
+
+        const saved = getSavedUser();
+        if (saved) {
+          const found = Array.from(modalUsuario.options).find(o => String(o.value) === String(saved.id));
+          if (found) modalUsuario.value = saved.id;
+        }
+      } catch (e) {
+        console.warn('Falha ao carregar usuários (modal):', e);
+        modalUsuario.innerHTML = '<option value="">(não foi possível carregar usuários)</option>';
+      }
+    }
+
+    // Autenticação
+    async function tryServerAuth(payload) {
+      try {
+        const r = await fetch(USERS_AUTH_API, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+        const ct = r.headers.get('content-type') || '';
+        let js = {};
+        if (ct.includes('application/json')) js = await r.json();
+        if (r.ok) return { ok: true, data: js };
+        return { ok: false, message: js.detail || js.message || r.statusText, status: r.status };
+      } catch (err) {
+        console.error('Erro ao autenticar:', err);
+        return { ok: false, message: 'Falha ao conectar com o servidor.' };
+      }
+    }
+
+    async function doLogin() {
+      const loginError = document.getElementById('loginError');
+      const btnModalLogin = document.getElementById('btnModalLogin');
+      const modalUsuario = document.getElementById('modalUsuario');
+      const modalSenha = document.getElementById('modalSenha');
+      
+      loginError.style.display = 'none';
+      loginError.textContent = '';
+      const sel = modalUsuario.value && modalUsuario.selectedOptions[0];
+      const usuarioId = sel ? sel.value : (modalUsuario.value || '').trim();
+      const usuarioLabel = sel ? (sel.dataset.label || sel.textContent) : usuarioId;
+      const senha = modalSenha.value || '';
+
+      if (!usuarioId || !senha) {
+        loginError.textContent = 'Informe usuário e senha.';
+        loginError.style.display = 'block';
+        return false;
+      }
+
+      btnModalLogin.disabled = true;
+      btnModalLogin.textContent = 'Entrando...';
+      
+      try {
+        const payload = { username: usuarioId, password: senha };
+        const auth = await tryServerAuth(payload);
+
+        if (auth.ok) {
+          const data = auth.data || {};
+          const label = data.nome || data.username || usuarioLabel;
+          setCurrentUser(data.id ?? usuarioId, label);
+          hideLoginModal();
+          return true;
+        } else {
+          loginError.textContent = auth.message || 'Credenciais inválidas.';
+          loginError.style.display = 'block';
+          return false;
+        }
+      } catch (err) {
+        console.error('Erro no doLogin():', err);
+        loginError.textContent = 'Erro inesperado. Veja console.';
+        loginError.style.display = 'block';
+        return false;
+      } finally {
+        btnModalLogin.disabled = false;
+        btnModalLogin.textContent = 'Entrar';
+      }
+    }
+
+    function logoutAndShowLogin() {
+      setCurrentUser(null);
+      carregarUsuariosModal().finally(() => showLoginModal());
+    }
+
+    // Controle de quantidade
+    function updateQuantityDisplay() {
+      quantityDisplay.textContent = quantidadeAtual;
+    }
+
+    function increaseQuantity() {
+      quantidadeAtual++;
+      updateQuantityDisplay();
+    }
+
+    function decreaseQuantity() {
+      if (quantidadeAtual > 1) {
+        quantidadeAtual--;
+        updateQuantityDisplay();
+      }
+    }
+
+    // Busca de produtos
+    async function buscar() {
+      const url = `${API_BASE}/produtos/?limit=25&query=${encodeURIComponent(q.value||'')}`;
+      lista.innerHTML = '<li>Carregando…</li>';
+      try {
+        const r = await fetch(url);
+        const ct = r.headers.get('content-type') || '';
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
+        const js = await r.json();
+        const results = js.results || js;
+        if (!Array.isArray(results) || results.length === 0) {
+          lista.innerHTML = '<li>Nenhum produto encontrado.</li>';
+          return;
+        }
+        lista.innerHTML = '';
+        results.forEach(p=>{
+          const li = document.createElement('li');
+          li.innerHTML = `
+            <div><strong>${p.descricao}</strong></div>
+            <div class="muted">#${p.idproduto} • ${p.codbarras||'-'} • R$ ${fmt(p.precovenda||0)}</div>
+            <div style="margin-top:4px; font-size:14px; color:#06c">
+              Estoque: ${fmt(p.estdisponivel||0)}
+            </div>
+          `;
+          li.onclick = ()=> carregarDetalhe(p.idproduto);
+          lista.appendChild(li);
+        });
+        lista.scrollTop = 0;
+      } catch(e) {
+        lista.innerHTML = `<li class="err">Erro ao buscar: ${e}</li>`;
+      }
+    }
+
+    // Detalhe do produto
+    async function carregarDetalhe(idproduto) {
+      detalhe.textContent = 'Carregando…';
+      try {
+        const r = await fetch(`${API_BASE}/produtos/${idproduto}/?empresa=${encodeURIComponent(document.getElementById('empresa').value||'1')}`);
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        const p = await r.json();
+        produtoSel = p;
+        detalhe.innerHTML = `
+          <div style="font-size:20px; margin-bottom:8px; font-weight:bold">${p.descricao}</div>
+          <div class="muted" style="margin-bottom:16px; font-size:14px">#${p.idproduto} • ${p.codbarras||'-'}</div>
+          <div class="stock-info">
+            <div style="margin-bottom:8px">Preço venda: <strong>R$ ${fmt(p.precovenda||0)}</strong></div>
+            <div>Estoque atual: <strong id="stk" style="font-size:18px">${fmt(p.estdisponivel||0)}</strong></div>
+          </div>
+        `;
+        ajusteBox.style.display = 'block';
+        msg.innerHTML = '';
+        quantidadeAtual = 1;
+        updateQuantityDisplay();
+      } catch(e) {
+        detalhe.innerHTML = `<div class="err">Erro ao carregar: ${e}</div>`;
+      }
+    }
+
+    // Ajuste de estoque
+    async function ajustar(delta) {
+      if (!produtoSel) return;
+      
+      const usuario = getSavedUser();
+      if (!usuario) {
+        msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>';
+        showLoginModal();
+        return;
+      }
+
+      const body = {
+        empresa: Number(document.getElementById('empresa').value || 1),
+        idproduto: Number(produtoSel.idproduto),
+        delta: Number(delta),
+        motivo: ''
+      };
+
+      if (usuario && usuario.id) {
+        body.usuario_id = Number(usuario.id);
+      }
+
+      hideConfirmModal();
+      msg.innerHTML = '<div style="text-align:center">Enviando…</div>';
+      
+      try {
+        const r = await fetch(`${API_BASE}/ajustar/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        const ct = r.headers.get('content-type') || '';
+        if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
+        const js = await r.json();
+        if (!r.ok || js.ok === false) {
+          msg.innerHTML = `<span class="err">Erro: ${js.detail || r.statusText}</span>`;
+          return;
+        }
+        produtoSel.estdisponivel = (js.saldo ?? js.saldo_atual ?? js.estdisponivel ?? produtoSel.estdisponivel);
+        document.getElementById('stk').textContent = fmt(produtoSel.estdisponivel);
+        msg.innerHTML = `
+          <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 12px; padding: 16px; text-align:center;">
+            <div style="color: var(--ok); font-weight:bold; margin-bottom:8px">
+              ✓ Ajuste aplicado com sucesso!
+            </div>
+            <div>
+              Novo estoque: <strong>${fmt(produtoSel.estdisponivel)}</strong>
+            </div>
+          </div>
+        `;
+      } catch(e) {
+        msg.innerHTML = `<span class="err">✗ Falha: ${e}</span>`;
+      }
+    }
+
+    // Event Listeners
+    document.getElementById('btnBuscar').onclick = buscar;
+    
+    // Scanner
+    btnScanner.addEventListener('click', iniciarScanner);
+    btnStopScanner.addEventListener('click', pararScanner);
+    
+    // Upload de imagem
+    barcodeImage.addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        processarImagem(file);
+      }
+    });
+    
+    // Controles de quantidade
+    btnIncrease.addEventListener('click', increaseQuantity);
+    btnDecrease.addEventListener('click', decreaseQuantity);
+    
+    // Botões de ação
+    btnAdd.addEventListener('click', () => {
+      if (quantidadeAtual <= 0) {
+        msg.innerHTML = '<span class="err">Informe uma quantidade válida</span>';
+        return;
+      }
+      showConfirmModal('add', quantidadeAtual);
+    });
+    
+    btnRem.addEventListener('click', () => {
+      if (quantidadeAtual <= 0) {
+        msg.innerHTML = '<span class="err">Informe uma quantidade válida</span>';
+        return;
+      }
+      showConfirmModal('rem', quantidadeAtual);
+    });
+
+    // Confirmação de ação
+    document.getElementById('btnConfirmAction').addEventListener('click', () => {
+      if (acaoPendente) {
+        const delta = acaoPendente.tipo === 'add' ? acaoPendente.quantidade : -acaoPendente.quantidade;
+        ajustar(delta);
+      }
+    });
+
+    document.getElementById('btnCancelConfirm').addEventListener('click', hideConfirmModal);
+
+    q.addEventListener('keydown', e=>{ if (e.key === 'Enter') buscar(); });
+
+    // Eventos do modal de login
+    btnOpenLogin.addEventListener('click', ()=> {
+      carregarUsuariosModal().finally(()=> showLoginModal());
+    });
+
+    document.getElementById('btnModalLogin').addEventListener('click', async () => {
+      await doLogin();
+    });
+
+    document.getElementById('btnCancelLogin').addEventListener('click', () => {
+      hideLoginModal();
+    });
+
+    document.getElementById('modalSenha').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('btnModalLogin').click();
+      }
+    });
+
+    document.getElementById('modalUsuario').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        document.getElementById('modalSenha').focus();
+      }
+    });
+
+    document.getElementById('modalUsuario').addEventListener('change', () => {
+      setTimeout(()=> document.getElementById('modalSenha').focus(), 50);
+    });
+
+    document.getElementById('btnLogoutTop').addEventListener('click', () => {
+      logoutAndShowLogin();
+    });
+
+    // Fechar modais clicando fora
+    loginOverlay.addEventListener('click', (e) => {
+      if (e.target === loginOverlay) {
+        hideLoginModal();
+      }
+    });
+
+    confirmOverlay.addEventListener('click', (e) => {
+      if (e.target === confirmOverlay) {
+        hideConfirmModal();
+      }
+    });
+
+    // Inicialização
+    lista.innerHTML = '<li>Digite e clique em Buscar…</li>';
+    updateQuantityDisplay();
+
+    (async function init(){
+      const saved = getSavedUser();
+      if (saved) {
+        setCurrentUser(saved.id, saved.label);
+      } else {
+        setCurrentUser(null);
+      }
+      await carregarUsuariosModal();
+      if (!saved) showLoginModal();
+    })();
+
+    // PWA
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}").catch(()=>{});
+    }
+  </script>
+</body>
+</html>
