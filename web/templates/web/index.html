@@ -590,476 +590,468 @@
   </div>
 
   <script>
-    const API_BASE = `${location.origin}/api/estoque`;
-    const USERS_API = `${location.origin}/api/usuarios/`;
-    const USERS_AUTH_API = `${location.origin}/api/usuarios/auth/`;
+/* ====== CONFIG ====== */
+const API_BASE = `${location.origin}/api/estoque`;
+const USERS_API = `${location.origin}/api/usuarios/`;
+const USERS_AUTH_API = `${location.origin}/api/usuarios/auth/`;
 
-    // Elementos principais
-    const lista = document.getElementById('lista');
-    const q = document.getElementById('q');
-    const detalhe = document.getElementById('detalhe');
-    const ajusteBox = document.getElementById('ajuste');
-    const quantityDisplay = document.getElementById('quantityDisplay');
-    const msg = document.getElementById('msg');
+/* ====== ELEMENTS ====== */
+const lista = document.getElementById('lista');
+const q = document.getElementById('q');
+const detalhe = document.getElementById('detalhe');
+const ajusteBox = document.getElementById('ajuste');
+const quantityDisplay = document.getElementById('quantityDisplay');
+const msg = document.getElementById('msg');
 
-    // Elementos do scanner
-    const btnScanner = document.getElementById('btnScanner');
-    const scannerSection = document.getElementById('scannerSection');
-    const scannerResult = document.getElementById('scannerResult');
-    const barcodeImage = document.getElementById('barcodeImage');
-    const btnStopScanner = document.getElementById('btnStopScanner');
+const btnScanner = document.getElementById('btnScanner');
+const scannerSection = document.getElementById('scannerSection');
+const scannerResult = document.getElementById('scannerResult');
+const barcodeImage = document.getElementById('barcodeImage');
+const btnStopScanner = document.getElementById('btnStopScanner');
 
-    // Elementos dos modais
-    const loginOverlay = document.getElementById('loginOverlay');
-    const confirmOverlay = document.getElementById('confirmOverlay');
+const loginOverlay = document.getElementById('loginOverlay');
+const confirmOverlay = document.getElementById('confirmOverlay');
 
-    let produtoSel = null;
-    let quantidadeAtual = 1;
-    let acaoPendente = null;
+const modalUsuario = document.getElementById('modalUsuario');
+const modalSenha = document.getElementById('modalSenha');
+const btnModalLogin = document.getElementById('btnModalLogin');
+const btnCancelLogin = document.getElementById('btnCancelLogin');
+const loginError = document.getElementById('loginError');
 
-    const fmt = n => (Math.round((Number(n)||0)*100)/100).toFixed(2).replace('.', ',');
+const currentUserBadge = document.getElementById('currentUserBadge');
+const btnOpenLogin = document.getElementById('btnOpenLogin');
+const btnLogoutTop = document.getElementById('btnLogoutTop');
 
-    // Scanner simplificado - funciona em HTTP
-    function iniciarScanner() {
-      console.log('Abrindo leitor de código de barras...');
-      scannerSection.style.display = 'block';
-      scannerResult.style.display = 'none';
-    }
+const confirmTitle = document.getElementById('confirmTitle');
+const confirmAction = document.getElementById('confirmAction');
+const confirmQuantity = document.getElementById('confirmQuantity');
+const confirmMessage = document.getElementById('confirmMessage');
+const btnConfirmAction = document.getElementById('btnConfirmAction');
+const btnCancelConfirm = document.getElementById('btnCancelConfirm');
 
-    function pararScanner() {
-      scannerSection.style.display = 'none';
-      scannerResult.style.display = 'none';
-    }
+const btnIncrease = document.getElementById('btnIncrease');
+const btnDecrease = document.getElementById('btnDecrease');
+const btnAdd = document.getElementById('btnAdd');
+const btnRem = document.getElementById('btnRem');
+const btnBuscar = document.getElementById('btnBuscar');
 
-    // Processar imagem (simulação - em produção usar uma biblioteca)
-    function processarImagem(file) {
-      scannerResult.innerHTML = '<span class="muted">Processando imagem... (em desenvolvimento)</span>';
-      scannerResult.style.display = 'block';
-      
-      // Em uma implementação real, aqui você usaria uma biblioteca como:
-      // - QuaggaJS (requer HTTPS)
-      // - JsBarcode
-      // - Ou enviar para um backend que processe a imagem
-      
-      setTimeout(() => {
-        scannerResult.innerHTML = `
-          <span class="muted">Funcionalidade em desenvolvimento.</span><br>
-          <span class="ok">Por favor, digite o código manualmente no campo de busca.</span>
-        `;
-      }, 1500);
-    }
+/* ====== STATE ====== */
+let produtoSel = null;
+let quantidadeAtual = 1;
+let acaoPendente = null; // usado só para confirm modal single-action
 
-    // Gerenciamento de usuário
-    function setCurrentUser(id, label) {
-      if (id) {
-        localStorage.setItem('ajuste_usuario_id', String(id));
-        localStorage.setItem('ajuste_usuario_label', String(label || id));
-        currentUserBadge.textContent = label || id;
-        currentUserBadge.style.display = 'inline-block';
-        btnLogoutTop.style.display = 'inline-block';
-        btnOpenLogin.style.display = 'none';
-      } else {
-        localStorage.removeItem('ajuste_usuario_id');
-        localStorage.removeItem('ajuste_usuario_label');
-        currentUserBadge.style.display = 'none';
-        btnLogoutTop.style.display = 'none';
-        btnOpenLogin.style.display = '';
-      }
-    }
+// lista de itens pendentes (lote)
+const pendingItems = [];
 
-    function getSavedUser() {
-      const id = localStorage.getItem('ajuste_usuario_id');
-      const label = localStorage.getItem('ajuste_usuario_label');
-      return id ? { id: id, label: label } : null;
-    }
+/* ====== HELPERS ====== */
+const fmt = n => (Math.round((Number(n)||0)*100)/100).toFixed(2).replace('.', ',');
 
-    // Modal functions
-    function showLoginModal() {
-      const loginError = document.getElementById('loginError');
-      const modalSenha = document.getElementById('modalSenha');
-      
-      loginError.style.display = 'none';
-      loginError.textContent = '';
-      modalSenha.value = '';
-      loginOverlay.style.display = 'flex';
-      setTimeout(()=> document.getElementById('modalUsuario').focus(), 60);
-    }
+function setCurrentUser(id, label) {
+  if (id) {
+    localStorage.setItem('ajuste_usuario_id', String(id));
+    localStorage.setItem('ajuste_usuario_label', String(label || id));
+    currentUserBadge.textContent = label || id;
+    currentUserBadge.style.display = 'inline-block';
+    btnLogoutTop.style.display = 'inline-block';
+    btnOpenLogin.style.display = 'none';
+  } else {
+    localStorage.removeItem('ajuste_usuario_id');
+    localStorage.removeItem('ajuste_usuario_label');
+    currentUserBadge.style.display = 'none';
+    btnLogoutTop.style.display = 'none';
+    btnOpenLogin.style.display = '';
+  }
+}
+function getSavedUser(){ const id = localStorage.getItem('ajuste_usuario_id'); const label = localStorage.getItem('ajuste_usuario_label'); return id ? { id: id, label: label } : null; }
 
-    function hideLoginModal() {
-      loginOverlay.style.display = 'none';
-    }
+/* ====== PENDING UI (LOTE) ====== */
+function ensurePendingUI(){
+  // cria área pendente abaixo do ajuste se ainda não existir
+  if (document.getElementById('pendingBox')) return;
+  const container = document.createElement('div');
+  container.id = 'pendingBox';
+  container.style.marginTop = '16px';
+  container.innerHTML = `
+    <h4 style="margin:0 0 8px 0">Itens pendentes (lote)</h4>
+    <ul id="pendingList" style="padding-left:12px; margin:0"></ul>
+    <div style="margin-top:12px; display:flex; gap:8px">
+      <button id="btnConfirmLote" class="btn" style="display:none">Confirmar ajustes</button>
+      <button id="btnClearPending" class="btn light" style="display:none">Limpar</button>
+    </div>
+  `;
+  ajusteBox.parentNode.appendChild(container);
 
-    function showConfirmModal(acao, quantidade) {
-      const acaoTexto = acao === 'add' ? 'Adicionar' : 'Remover';
-      const acaoDescricao = acao === 'add' ? 'adicionar' : 'remover';
-      
-      confirmTitle.textContent = 'Confirmar Ajuste';
-      confirmAction.textContent = `${acaoTexto} ${quantidade} unidade${quantidade > 1 ? 's' : ''}`;
-      confirmQuantity.textContent = quantidade;
-      confirmMessage.textContent = `Deseja ${acaoDescricao} ${quantidade} unidade${quantidade > 1 ? 's' : ''} no estoque?`;
-      
-      acaoPendente = { tipo: acao, quantidade: quantidade };
-      confirmOverlay.style.display = 'flex';
-    }
+  document.getElementById('btnConfirmLote').addEventListener('click', confirmarLote);
+  document.getElementById('btnClearPending').addEventListener('click', () => { pendingItems.length = 0; renderPending(); });
+}
 
-    function hideConfirmModal() {
-      confirmOverlay.style.display = 'none';
-      acaoPendente = null;
-    }
+function renderPending(){
+  ensurePendingUI();
+  const list = document.getElementById('pendingList');
+  const btnConfirmLote = document.getElementById('btnConfirmLote');
+  const btnClearPending = document.getElementById('btnClearPending');
 
-    async function carregarUsuariosModal() {
-      const modalUsuario = document.getElementById('modalUsuario');
-      modalUsuario.innerHTML = '<option value="">Carregando...</option>';
-      try {
-        const r = await fetch(USERS_API);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const js = await r.json();
-        modalUsuario.innerHTML = '<option value="">Selecione usuário...</option>';
-        let arr = [];
-        if (Array.isArray(js)) arr = js;
-        else if (js && Array.isArray(js.results)) arr = js.results;
-        else if (js && Array.isArray(js.data)) arr = js.data;
+  if (!pendingItems.length) {
+    list.innerHTML = '<li class="muted">Nenhum item pendente.</li>';
+    btnConfirmLote.style.display = 'none';
+    btnClearPending.style.display = 'none';
+    return;
+  }
 
-        arr.forEach(u => {
-          const id = u.id ?? u.IDUSUARIO ?? u.idusuario ?? u.ID ?? u.usuario;
-          const name = (u.nome || u.nomecompleto || u.username || u.USUARIO || u.user || u.NOME || u.NOME_COMPLETO || '').toString();
-          const label = name || String(id);
-          const opt = document.createElement('option');
-          opt.value = id ?? '';
-          opt.textContent = label;
-          opt.dataset.label = label;
-          modalUsuario.appendChild(opt);
-        });
+  btnConfirmLote.style.display = 'inline-block';
+  btnClearPending.style.display = 'inline-block';
+  list.innerHTML = '';
+  pendingItems.forEach((it, i) => {
+    const li = document.createElement('li');
+    li.style.display = 'flex';
+    li.style.justifyContent = 'space-between';
+    li.style.alignItems = 'center';
+    li.style.paddingRight = '8px';
+    li.innerHTML = `<div><strong>${it.descricao}</strong><div class="muted" style="font-size:13px">#${it.idproduto} • delta: ${it.delta}</div></div>`;
+    const right = document.createElement('div');
+    right.style.display = 'flex';
+    right.style.gap = '8px';
+    const btnRm = document.createElement('button');
+    btnRm.className = 'btn light small-btn';
+    btnRm.textContent = 'Rem';
+    btnRm.onclick = () => { pendingItems.splice(i,1); renderPending(); };
+    right.appendChild(btnRm);
+    li.appendChild(right);
+    list.appendChild(li);
+  });
+}
 
-        const saved = getSavedUser();
-        if (saved) {
-          const found = Array.from(modalUsuario.options).find(o => String(o.value) === String(saved.id));
-          if (found) modalUsuario.value = saved.id;
-        }
-      } catch (e) {
-        console.warn('Falha ao carregar usuários (modal):', e);
-        modalUsuario.innerHTML = '<option value="">(não foi possível carregar usuários)</option>';
-      }
-    }
+/* ====== SCANNER (simples) ====== */
+function iniciarScanner(){ scannerSection.style.display = 'block'; scannerResult.style.display = 'none'; }
+function pararScanner(){ scannerSection.style.display = 'none'; scannerResult.style.display = 'none'; }
+function processarImagem(file){
+  scannerResult.innerHTML = '<span class="muted">Processando imagem... (em desenvolvimento)</span>';
+  scannerResult.style.display = 'block';
+  setTimeout(()=> {
+    scannerResult.innerHTML = `<span class="muted">Funcionalidade em desenvolvimento.</span><br><span class="ok">Por favor, digite o código manualmente.</span>`;
+  }, 700);
+}
 
-    // Autenticação
-    async function tryServerAuth(payload) {
-      try {
-        const r = await fetch(USERS_AUTH_API, {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
-        });
-        const ct = r.headers.get('content-type') || '';
-        let js = {};
-        if (ct.includes('application/json')) js = await r.json();
-        if (r.ok) return { ok: true, data: js };
-        return { ok: false, message: js.detail || js.message || r.statusText, status: r.status };
-      } catch (err) {
-        console.error('Erro ao autenticar:', err);
-        return { ok: false, message: 'Falha ao conectar com o servidor.' };
-      }
-    }
-
-    async function doLogin() {
-      const loginError = document.getElementById('loginError');
-      const btnModalLogin = document.getElementById('btnModalLogin');
-      const modalUsuario = document.getElementById('modalUsuario');
-      const modalSenha = document.getElementById('modalSenha');
-      
-      loginError.style.display = 'none';
-      loginError.textContent = '';
-      const sel = modalUsuario.value && modalUsuario.selectedOptions[0];
-      const usuarioId = sel ? sel.value : (modalUsuario.value || '').trim();
-      const usuarioLabel = sel ? (sel.dataset.label || sel.textContent) : usuarioId;
-      const senha = modalSenha.value || '';
-
-      if (!usuarioId || !senha) {
-        loginError.textContent = 'Informe usuário e senha.';
-        loginError.style.display = 'block';
-        return false;
-      }
-
-      btnModalLogin.disabled = true;
-      btnModalLogin.textContent = 'Entrando...';
-      
-      try {
-        const payload = { username: usuarioId, password: senha };
-        const auth = await tryServerAuth(payload);
-
-        if (auth.ok) {
-          const data = auth.data || {};
-          const label = data.nome || data.username || usuarioLabel;
-          setCurrentUser(data.id ?? usuarioId, label);
-          hideLoginModal();
-          return true;
-        } else {
-          loginError.textContent = auth.message || 'Credenciais inválidas.';
-          loginError.style.display = 'block';
-          return false;
-        }
-      } catch (err) {
-        console.error('Erro no doLogin():', err);
-        loginError.textContent = 'Erro inesperado. Veja console.';
-        loginError.style.display = 'block';
-        return false;
-      } finally {
-        btnModalLogin.disabled = false;
-        btnModalLogin.textContent = 'Entrar';
-      }
-    }
-
-    function logoutAndShowLogin() {
-      setCurrentUser(null);
-      carregarUsuariosModal().finally(() => showLoginModal());
-    }
-
-    // Controle de quantidade
-    function updateQuantityDisplay() {
-      quantityDisplay.textContent = quantidadeAtual;
-    }
-
-    function increaseQuantity() {
-      quantidadeAtual++;
-      updateQuantityDisplay();
-    }
-
-    function decreaseQuantity() {
-      if (quantidadeAtual > 1) {
-        quantidadeAtual--;
-        updateQuantityDisplay();
-      }
-    }
-
-    // Busca de produtos
-    async function buscar() {
-      const url = `${API_BASE}/produtos/?limit=25&query=${encodeURIComponent(q.value||'')}`;
-      lista.innerHTML = '<li>Carregando…</li>';
-      try {
-        const r = await fetch(url);
-        const ct = r.headers.get('content-type') || '';
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
-        const js = await r.json();
-        const results = js.results || js;
-        if (!Array.isArray(results) || results.length === 0) {
-          lista.innerHTML = '<li>Nenhum produto encontrado.</li>';
-          return;
-        }
-        lista.innerHTML = '';
-        results.forEach(p=>{
-          const li = document.createElement('li');
-          li.innerHTML = `
-            <div><strong>${p.descricao}</strong></div>
-            <div class="muted">#${p.idproduto} • ${p.codbarras||'-'} • R$ ${fmt(p.precovenda||0)}</div>
-            <div style="margin-top:4px; font-size:14px; color:#06c">
-              Estoque: ${fmt(p.estdisponivel||0)}
-            </div>
-          `;
-          li.onclick = ()=> carregarDetalhe(p.idproduto);
-          lista.appendChild(li);
-        });
-        lista.scrollTop = 0;
-      } catch(e) {
-        lista.innerHTML = `<li class="err">Erro ao buscar: ${e}</li>`;
-      }
-    }
-
-    // Detalhe do produto
-    async function carregarDetalhe(idproduto) {
-      detalhe.textContent = 'Carregando…';
-      try {
-        const r = await fetch(`${API_BASE}/produtos/${idproduto}/?empresa=${encodeURIComponent(document.getElementById('empresa').value||'1')}`);
-        if (!r.ok) throw new Error(`HTTP ${r.status}`);
-        const p = await r.json();
-        produtoSel = p;
-        detalhe.innerHTML = `
-          <div style="font-size:20px; margin-bottom:8px; font-weight:bold">${p.descricao}</div>
-          <div class="muted" style="margin-bottom:16px; font-size:14px">#${p.idproduto} • ${p.codbarras||'-'}</div>
-          <div class="stock-info">
-            <div style="margin-bottom:8px">Preço venda: <strong>R$ ${fmt(p.precovenda||0)}</strong></div>
-            <div>Estoque atual: <strong id="stk" style="font-size:18px">${fmt(p.estdisponivel||0)}</strong></div>
-          </div>
-        `;
-        ajusteBox.style.display = 'block';
-        msg.innerHTML = '';
-        quantidadeAtual = 1;
-        updateQuantityDisplay();
-      } catch(e) {
-        detalhe.innerHTML = `<div class="err">Erro ao carregar: ${e}</div>`;
-      }
-    }
-
-    // Ajuste de estoque
-    async function ajustar(delta) {
-      if (!produtoSel) return;
-      
-      const usuario = getSavedUser();
-      if (!usuario) {
-        msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>';
-        showLoginModal();
-        return;
-      }
-
-      const body = {
-        empresa: Number(document.getElementById('empresa').value || 1),
-        idproduto: Number(produtoSel.idproduto),
-        delta: Number(delta),
-        motivo: ''
-      };
-
-      if (usuario && usuario.id) {
-        body.usuario_id = Number(usuario.id);
-      }
-
-      hideConfirmModal();
-      msg.innerHTML = '<div style="text-align:center">Enviando…</div>';
-      
-      try {
-        const r = await fetch(`${API_BASE}/ajustar/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(body)
-        });
-        const ct = r.headers.get('content-type') || '';
-        if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
-        const js = await r.json();
-        if (!r.ok || js.ok === false) {
-          msg.innerHTML = `<span class="err">Erro: ${js.detail || r.statusText}</span>`;
-          return;
-        }
-        produtoSel.estdisponivel = (js.saldo ?? js.saldo_atual ?? js.estdisponivel ?? produtoSel.estdisponivel);
-        document.getElementById('stk').textContent = fmt(produtoSel.estdisponivel);
-        msg.innerHTML = `
-          <div style="background: #d4edda; border: 1px solid #c3e6cb; border-radius: 12px; padding: 16px; text-align:center;">
-            <div style="color: var(--ok); font-weight:bold; margin-bottom:8px">
-              ✓ Ajuste aplicado com sucesso!
-            </div>
-            <div>
-              Novo estoque: <strong>${fmt(produtoSel.estdisponivel)}</strong>
-            </div>
-          </div>
-        `;
-      } catch(e) {
-        msg.innerHTML = `<span class="err">✗ Falha: ${e}</span>`;
-      }
-    }
-
-    // Event Listeners
-    document.getElementById('btnBuscar').onclick = buscar;
-    
-    // Scanner
-    btnScanner.addEventListener('click', iniciarScanner);
-    btnStopScanner.addEventListener('click', pararScanner);
-    
-    // Upload de imagem
-    barcodeImage.addEventListener('change', function(e) {
-      const file = e.target.files[0];
-      if (file) {
-        processarImagem(file);
-      }
+/* ====== LOGIN ====== */
+async function carregarUsuariosModal(){
+  modalUsuario.innerHTML = '<option value="">Carregando...</option>';
+  try {
+    const r = await fetch(USERS_API);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const js = await r.json();
+    modalUsuario.innerHTML = '<option value="">Selecione usuário...</option>';
+    let arr = [];
+    if (Array.isArray(js)) arr = js;
+    else if (js && Array.isArray(js.results)) arr = js.results;
+    else if (js && Array.isArray(js.data)) arr = js.data;
+    arr.forEach(u=>{
+      const id = u.id ?? u.IDUSUARIO ?? u.idusuario ?? u.ID ?? u.usuario;
+      const name = (u.nome || u.nomecompleto || u.username || u.USUARIO || u.user || u.NOME || u.NOME_COMPLETO || '').toString();
+      const label = name || String(id);
+      const opt = document.createElement('option');
+      opt.value = id ?? '';
+      opt.textContent = label;
+      opt.dataset.label = label;
+      modalUsuario.appendChild(opt);
     });
-    
-    // Controles de quantidade
-    btnIncrease.addEventListener('click', increaseQuantity);
-    btnDecrease.addEventListener('click', decreaseQuantity);
-    
-    // Botões de ação
-    btnAdd.addEventListener('click', () => {
-      if (quantidadeAtual <= 0) {
-        msg.innerHTML = '<span class="err">Informe uma quantidade válida</span>';
-        return;
-      }
-      showConfirmModal('add', quantidadeAtual);
+    const saved = getSavedUser();
+    if (saved) {
+      const found = Array.from(modalUsuario.options).find(o => String(o.value) === String(saved.id));
+      if (found) modalUsuario.value = saved.id;
+    }
+  } catch(e){
+    console.warn('Falha ao carregar usuários (modal):', e);
+    modalUsuario.innerHTML = '<option value="">(não foi possível carregar)</option>';
+  }
+}
+
+async function tryServerAuth(payload){
+  try {
+    const r = await fetch(USERS_AUTH_API, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(payload)
     });
-    
-    btnRem.addEventListener('click', () => {
-      if (quantidadeAtual <= 0) {
-        msg.innerHTML = '<span class="err">Informe uma quantidade válida</span>';
-        return;
-      }
-      showConfirmModal('rem', quantidadeAtual);
-    });
+    const ct = r.headers.get('content-type')||'';
+    let js = {};
+    if (ct.includes('application/json')) js = await r.json();
+    if (r.ok) return { ok: true, data: js };
+    return { ok:false, message: js.detail || js.message || r.statusText, status: r.status };
+  } catch(err){
+    console.error('Erro ao autenticar:', err);
+    return { ok:false, message:'Falha ao conectar com o servidor.' };
+  }
+}
 
-    // Confirmação de ação
-    document.getElementById('btnConfirmAction').addEventListener('click', () => {
-      if (acaoPendente) {
-        const delta = acaoPendente.tipo === 'add' ? acaoPendente.quantidade : -acaoPendente.quantidade;
-        ajustar(delta);
-      }
-    });
+async function doLogin(){
+  loginError.style.display = 'none';
+  loginError.textContent = '';
+  const sel = modalUsuario.value && modalUsuario.selectedOptions[0];
+  const usuarioId = sel ? sel.value : (modalUsuario.value || '').trim();
+  const usuarioLabel = sel ? (sel.dataset.label || sel.textContent) : usuarioId;
+  const senha = modalSenha.value || '';
+  if (!usuarioId || !senha) { loginError.textContent = 'Informe usuário e senha.'; loginError.style.display = 'block'; return false; }
 
-    document.getElementById('btnCancelConfirm').addEventListener('click', hideConfirmModal);
-
-    q.addEventListener('keydown', e=>{ if (e.key === 'Enter') buscar(); });
-
-    // Eventos do modal de login
-    btnOpenLogin.addEventListener('click', ()=> {
-      carregarUsuariosModal().finally(()=> showLoginModal());
-    });
-
-    document.getElementById('btnModalLogin').addEventListener('click', async () => {
-      await doLogin();
-    });
-
-    document.getElementById('btnCancelLogin').addEventListener('click', () => {
+  btnModalLogin.disabled = true;
+  btnModalLogin.textContent = 'Entrando...';
+  try {
+    const auth = await tryServerAuth({ username: usuarioId, password: senha });
+    if (auth.ok){
+      const data = auth.data || {};
+      const label = data.nome || data.username || usuarioLabel;
+      setCurrentUser(data.id ?? usuarioId, label);
       hideLoginModal();
-    });
-
-    document.getElementById('modalSenha').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('btnModalLogin').click();
-      }
-    });
-
-    document.getElementById('modalUsuario').addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        e.preventDefault();
-        document.getElementById('modalSenha').focus();
-      }
-    });
-
-    document.getElementById('modalUsuario').addEventListener('change', () => {
-      setTimeout(()=> document.getElementById('modalSenha').focus(), 50);
-    });
-
-    document.getElementById('btnLogoutTop').addEventListener('click', () => {
-      logoutAndShowLogin();
-    });
-
-    // Fechar modais clicando fora
-    loginOverlay.addEventListener('click', (e) => {
-      if (e.target === loginOverlay) {
-        hideLoginModal();
-      }
-    });
-
-    confirmOverlay.addEventListener('click', (e) => {
-      if (e.target === confirmOverlay) {
-        hideConfirmModal();
-      }
-    });
-
-    // Inicialização
-    lista.innerHTML = '<li>Digite e clique em Buscar…</li>';
-    updateQuantityDisplay();
-
-    (async function init(){
-      const saved = getSavedUser();
-      if (saved) {
-        setCurrentUser(saved.id, saved.label);
-      } else {
-        setCurrentUser(null);
-      }
-      await carregarUsuariosModal();
-      if (!saved) showLoginModal();
-    })();
-
-    // PWA
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}").catch(()=>{});
+      return true;
+    } else {
+      loginError.textContent = auth.message || 'Credenciais inválidas.';
+      loginError.style.display = 'block';
+      return false;
     }
-  </script>
+  } finally {
+    btnModalLogin.disabled = false;
+    btnModalLogin.textContent = 'Entrar';
+  }
+}
+
+function showLoginModal(){ loginError.style.display = 'none'; loginError.textContent=''; modalSenha.value=''; loginOverlay.style.display = 'flex'; setTimeout(()=> modalUsuario.focus(), 60); }
+function hideLoginModal(){ loginOverlay.style.display = 'none'; }
+
+function logoutAndShowLogin(){ setCurrentUser(null); carregarUsuariosModal().finally(()=> showLoginModal()); }
+
+/* ====== QUANTIDADE ====== */
+function updateQuantityDisplay(){ quantityDisplay.textContent = String(quantidadeAtual); }
+function increaseQuantity(){ quantidadeAtual = Math.max(1, parseInt(quantidadeAtual)+1); updateQuantityDisplay(); }
+function decreaseQuantity(){ quantidadeAtual = Math.max(1, parseInt(quantidadeAtual)-1); updateQuantityDisplay(); }
+
+/* ====== BUSCAR PRODUTOS ====== */
+async function buscar(){
+  const url = `${API_BASE}/produtos/?limit=25&query=${encodeURIComponent(q.value||'')}`;
+  lista.innerHTML = '<li>Carregando…</li>';
+  try {
+    const r = await fetch(url);
+    const ct = r.headers.get('content-type') || '';
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
+    const js = await r.json();
+    const results = js.results || js;
+    if (!Array.isArray(results) || results.length === 0) {
+      lista.innerHTML = '<li>Nenhum produto encontrado.</li>';
+      return;
+    }
+    lista.innerHTML = '';
+    results.forEach(p=>{
+      const li = document.createElement('li');
+      li.innerHTML = `
+        <div><strong>${p.descricao}</strong></div>
+        <div class="muted">#${p.idproduto} • ${p.codbarras||'-'} • R$ ${fmt(p.precovenda||0)}</div>
+        <div style="margin-top:6px; font-size:14px; color:#06c">Estoque: ${fmt(p.estdisponivel||0)}</div>
+      `;
+      li.onclick = ()=> carregarDetalhe(p.idproduto);
+      lista.appendChild(li);
+    });
+    lista.scrollTop = 0;
+  } catch(e){
+    lista.innerHTML = `<li class="err">Erro ao buscar: ${e}</li>`;
+  }
+}
+
+/* ====== CARREGAR DETALHE ====== */
+async function carregarDetalhe(idproduto){
+  detalhe.textContent = 'Carregando…';
+  try {
+    const r = await fetch(`${API_BASE}/produtos/${idproduto}/?empresa=${encodeURIComponent(document.getElementById('empresa').value||'1')}`);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const p = await r.json();
+    produtoSel = p;
+    detalhe.innerHTML = `
+      <div style="font-size:20px; margin-bottom:8px; font-weight:bold">${p.descricao}</div>
+      <div class="muted" style="margin-bottom:16px; font-size:14px">#${p.idproduto} • ${p.codbarras||'-'}</div>
+      <div class="stock-info">
+        <div style="margin-bottom:8px">Preço venda: <strong>R$ ${fmt(p.precovenda||0)}</strong></div>
+        <div>Estoque atual: <strong id="stk" style="font-size:18px">${fmt(p.estdisponivel||0)}</strong></div>
+      </div>
+    `;
+    ajusteBox.style.display = 'block';
+    msg.innerHTML = '';
+    quantidadeAtual = 1;
+    updateQuantityDisplay();
+  } catch(e){
+    detalhe.innerHTML = `<div class="err">Erro ao carregar: ${e}</div>`;
+  }
+}
+
+/* ====== AJUSTE SINGULAR (mantido para compatibilidade) ====== */
+async function ajustar(delta){
+  if (!produtoSel) return;
+  const usuario = getSavedUser();
+  if (!usuario) { msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>'; showLoginModal(); return; }
+
+  const body = {
+    empresa: Number(document.getElementById('empresa').value || 1),
+    idproduto: Number(produtoSel.idproduto),
+    delta: Number(delta),
+    motivo: ''
+  };
+  if (usuario && usuario.id) body.usuario_id = Number(usuario.id);
+
+  hideConfirmModal();
+  msg.innerHTML = '<div style="text-align:center">Enviando…</div>';
+  try {
+    const r = await fetch(`${API_BASE}/ajustar/`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const ct = r.headers.get('content-type')||'';
+    if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
+    const js = await r.json();
+    if (!r.ok || js.ok === false) { msg.innerHTML = `<span class="err">Erro: ${js.detail || r.statusText}</span>`; return; }
+    produtoSel.estdisponivel = (js.saldo ?? js.saldo_atual ?? js.estdisponivel ?? produtoSel.estdisponivel);
+    const stk = document.getElementById('stk');
+    if (stk) stk.textContent = fmt(produtoSel.estdisponivel);
+    msg.innerHTML = `<div style="background:#d4edda; border:1px solid #c3e6cb; border-radius:12px; padding:12px; text-align:center"><div style="color:var(--ok); font-weight:700">✓ Ajuste aplicado</div><div>Novo estoque: <strong>${fmt(produtoSel.estdisponivel)}</strong></div></div>`;
+    // opcional: atualizar lista (buscar) -> cuidado com duplicação caso backend não filtrou por almox
+    // buscar();
+  } catch(e){
+    msg.innerHTML = `<span class="err">✗ Falha: ${e}</span>`;
+  }
+}
+
+/* ====== AJUSTE EM LOTE ====== */
+async function confirmarLote(){
+  if (!pendingItems.length) return;
+  const usuario = getSavedUser();
+  if (!usuario) { msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>'; showLoginModal(); return; }
+
+  // preparar payload
+  const body = {
+    empresa: Number(document.getElementById('empresa').value || 1),
+    idalmox: 1,
+    usuario_id: Number(usuario.id),
+    usuario_label: usuario.label,
+    motivo: 'Ajuste em lote via PWA',
+    items: pendingItems.map(it => ({ idproduto: it.idproduto, delta: Number(it.delta), motivo: it.motivo || '' }))
+  };
+
+  const confirmBtn = document.getElementById('btnConfirmLote');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = 'Enviando...';
+  msg.innerHTML = '<div style="text-align:center">Enviando lote…</div>';
+
+  try {
+    const r = await fetch(`${API_BASE}/ajustar_lote/`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const ct = r.headers.get('content-type') || '';
+    const js = ct.includes('application/json') ? await r.json() : {};
+    if (!r.ok) { msg.innerHTML = `<span class="err">Erro lote: ${js.detail || r.statusText}</span>`; return; }
+
+    // resultado: js.results = [{idproduto, saldo}, ...]
+    if (Array.isArray(js.results)) {
+      // se o produto atual estiver no lote, atualiza seu estoque
+      const found = js.results.find(x => Number(x.idproduto) === Number(produtoSel && produtoSel.idproduto));
+      if (found) {
+        produtoSel.estdisponivel = found.saldo;
+        const stk = document.getElementById('stk');
+        if (stk) stk.textContent = fmt(produtoSel.estdisponivel);
+      }
+    }
+
+    msg.innerHTML = `<div class="ok" style="font-weight:700">Lote aplicado (${pendingItems.length} itens).</div>`;
+    pendingItems.length = 0;
+    renderPending();
+    // opcional: atualizar lista principal (buscar)
+    // buscar();
+  } catch(e){
+    msg.innerHTML = `<span class="err">Falha ao enviar lote: ${e}</span>`;
+  } finally {
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = 'Confirmar ajustes';
+  }
+}
+
+/* ====== MODAIS SIMPLES ====== */
+function showConfirmModal(acao, quantidade){
+  const acaoTexto = acao === 'add' ? 'Adicionar' : 'Remover';
+  const acaoDescricao = acao === 'add' ? 'adicionar' : 'remover';
+  confirmTitle.textContent = 'Confirmar Ajuste';
+  confirmAction.textContent = `${acaoTexto} ${quantidade} unidade${quantidade > 1 ? 's' : ''}`;
+  confirmQuantity.textContent = quantidade;
+  confirmMessage.textContent = `Deseja ${acaoDescricao} ${quantidade} unidade${quantidade > 1 ? 's' : ''} no estoque?`;
+  acaoPendente = { tipo: acao, quantidade: quantidade };
+  confirmOverlay.style.display = 'flex';
+}
+function hideConfirmModal(){ confirmOverlay.style.display = 'none'; acaoPendente = null; }
+
+/* ====== EVENTOS ====== */
+// busca
+btnBuscar.addEventListener('click', buscar);
+q.addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
+
+// scanner
+btnScanner.addEventListener('click', iniciarScanner);
+btnStopScanner.addEventListener('click', pararScanner);
+barcodeImage.addEventListener('change', (e)=> { const f = e.target.files[0]; if (f) processarImagem(f); });
+
+// quantidade controls
+btnIncrease.addEventListener('click', increaseQuantity);
+btnDecrease.addEventListener('click', decreaseQuantity);
+
+// add/remove -> empilhar no pending
+btnAdd.addEventListener('click', () => {
+  if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
+  const qty = Math.max(1, parseInt(quantidadeAtual) || 1);
+  pendingItems.push({ idproduto: produtoSel.idproduto, descricao: produtoSel.descricao, delta: qty });
+  renderPending();
+});
+btnRem.addEventListener('click', () => {
+  if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
+  const qty = Math.max(1, parseInt(quantidadeAtual) || 1);
+  pendingItems.push({ idproduto: produtoSel.idproduto, descricao: produtoSel.descricao, delta: -qty });
+  renderPending();
+});
+
+// modal confirm single action
+btnConfirmAction.addEventListener('click', () => {
+  if (!acaoPendente) return;
+  const delta = acaoPendente.tipo === 'add' ? acaoPendente.quantidade : -acaoPendente.quantidade;
+  ajustar(delta);
+});
+btnCancelConfirm.addEventListener('click', hideConfirmModal);
+
+// login modal
+btnOpenLogin.addEventListener('click', ()=> { carregarUsuariosModal().finally(()=> showLoginModal()); });
+btnModalLogin.addEventListener('click', async ()=> { await doLogin(); });
+btnCancelLogin.addEventListener('click', ()=> hideLoginModal());
+modalSenha.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btnModalLogin.click(); }});
+modalUsuario.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); modalSenha.focus(); }});
+modalUsuario.addEventListener('change', ()=> setTimeout(()=> modalSenha.focus(), 50));
+btnLogoutTop.addEventListener('click', ()=> logoutAndShowLogin());
+
+// fechar modais clicando fora
+loginOverlay.addEventListener('click', (e)=> { if (e.target === loginOverlay) hideLoginModal(); });
+confirmOverlay.addEventListener('click', (e)=> { if (e.target === confirmOverlay) hideConfirmModal(); });
+
+/* ====== INICIALIZAÇÃO ====== */
+lista.innerHTML = '<li>Digite e clique em Buscar…</li>';
+updateQuantityDisplay();
+renderPending();
+
+(async function init(){
+  const saved = getSavedUser();
+  if (saved) setCurrentUser(saved.id, saved.label);
+  else setCurrentUser(null);
+  await carregarUsuariosModal();
+  if (!saved) showLoginModal();
+})();
+
+/* PWA registration */
+if ('serviceWorker' in navigator){
+  navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}").catch(()=>{});
+}
+</script>
+
 </body>
 </html>

@@ -9,10 +9,147 @@ from .serializers import AjusteSerializer, ProdutoQuerySerializer
 from .firebird_ops import (
     buscar_produtos_TESTPRODUTO,
     obter_produto_com_estoque,
-    ajustar_estoque_TESTPRODUTOESTOQUE,
     buscar_usuarios_TGERUSUARIO,
     verificar_credenciais_TGERUSUARIO,
+    criar_testinventario,
+    ajustar_lote_TESTPRODUTOESTOQUE,
 )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def ajustar_lote(request):
+    """
+    POST /api/estoque/ajustar_lote/
+    Body JSON:
+    {
+      "empresa": 1,
+      "idalmox": 1,
+      "usuario_id": 1,
+      "usuario_label": "SUPORTE",
+      "motivo": "Ajuste de fechamento",
+      "items": [
+         {"idproduto": 3, "delta": 1},
+         {"idproduto": 5, "delta": -2, "motivo": "Quebra"}
+      ]
+    }
+    Retorna: [{idproduto, saldo}, ...]
+    """
+    data = request.data or {}
+    items = data.get('items')
+    if not items or not isinstance(items, list):
+        return Response({'detail': "items é obrigatório (lista)."}, status=status.HTTP_400_BAD_REQUEST)
+    empresa = data.get('empresa') or request.GET.get('empresa') or 1
+    try:
+        empresa = int(empresa)
+    except Exception:
+        return Response({'detail': 'empresa inválida'}, status=status.HTTP_400_BAD_REQUEST)
+
+    idalmox = data.get('idalmox') or 1
+    usuario_id = data.get('usuario_id') or data.get('usuario')
+    usuario_label = data.get('usuario_label') or data.get('usuarioName')
+
+    try:
+        results = ajustar_lote_TESTPRODUTOESTOQUE(
+            empresa=empresa,
+            items=items,
+            idalmox=idalmox,
+            usuario_id=usuario_id,
+            usuario_label=usuario_label,
+            motivo_geral=data.get('motivo')
+        )
+        return Response({'ok': True, 'results': results}, status=status.HTTP_200_OK)
+    except Exception as e:
+        if settings.DEBUG:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Erro ao processar ajuste em lote'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def criar_inventario_view(request):
+    """
+    POST /api/estoque/inventario/
+    body: { "empresa":1, "idalmox":1, "usuario_id":1, "usuario_label":"SUPORTE", "motivo":"..." }
+    retorna { "idinventario": 123 }
+    """
+    data = request.data or {}
+    empresa = data.get('empresa') or 1
+    idalmox = data.get('idalmox') or 1
+    usuario_id = data.get('usuario_id')
+    usuario_label = data.get('usuario_label')
+    motivo = data.get('motivo')
+    try:
+        idinv = criar_testinventario(empresa=empresa, idalmox=idalmox, usuario_id=usuario_id, usuario_label=usuario_label, motivo=motivo)
+        return Response({"idinventario": int(idinv)}, status=200)
+    except Exception as e:
+        if settings.DEBUG:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Erro ao criar inventario"}, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def ajustar_lote(request):
+    """
+    POST /api/estoque/ajustar_lote/
+    body:
+    {
+      "empresa":1,
+      "idalmox":1,
+      "usuario_id":1,
+      "usuario_label":"SUPORTE",
+      "idinventario": null OR existing id,
+      "items":[ {"idproduto":123,"delta":1,"motivo":"..."}, ... ]
+    }
+    Se idinventario nao for passado -> cria um novo inventario e usa ele.
+    Para cada item chama ajustar_estoque_TESTPRODUTOESTOQUE(..., idinventario=...)
+    Retorna: {"idinventario": X, "results":[ {"idproduto":..., "saldo":...}, ... ]}
+    """
+    data = request.data or {}
+    empresa = data.get('empresa') or 1
+    idalmox = data.get('idalmox') or 1
+    usuario_id = data.get('usuario_id')
+    usuario_label = data.get('usuario_label')
+    idinventario = data.get('idinventario')  # optional
+    items = data.get('items') or []
+
+    if not isinstance(items, list) or len(items) == 0:
+        return Response({"detail": "Nenhum item para ajustar"}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        # cria inventario se nao informado
+        if not idinventario:
+            idinventario = criar_testinventario(empresa=empresa, idalmox=idalmox, usuario_id=usuario_id, usuario_label=usuario_label, motivo="Inventario de lote via API")
+
+        results = []
+        for it in items:
+            pid = it.get('idproduto')
+            delta = it.get('delta')
+            motivo = it.get('motivo')
+            if pid is None or delta is None:
+                results.append({"idproduto": pid, "error": "idproduto ou delta ausente"})
+                continue
+            try:
+                novo = ajustar_estoque_TESTPRODUTOESTOQUE(
+                    empresa=empresa,
+                    idproduto=pid,
+                    delta=delta,
+                    usuario_id=usuario_id,
+                    usuario_label=usuario_label,
+                    motivo=motivo,
+                    idalmox=idalmox,
+                    idinventario=idinventario
+                )
+                results.append({"idproduto": pid, "saldo": float(novo)})
+            except Exception as e:
+                results.append({"idproduto": pid, "error": str(e)})
+
+        return Response({"idinventario": int(idinventario), "results": results}, status=200)
+    except Exception as e:
+        if settings.DEBUG:
+            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({"detail": "Erro ao processar lote"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -153,19 +290,28 @@ def health(request):
 @permission_classes([AllowAny])
 def produtos_list(request):
     """
-    GET /api/estoque/produtos/?limit=25&query=...
+    GET /api/estoque/produtos/?limit=25&query=...&empresa=1
     """
     s = ProdutoQuerySerializer(data=request.query_params)
     s.is_valid(raise_exception=True)
     query = s.validated_data.get('query')
     limit = s.validated_data.get('limit') or 25
+
+    # pega empresa da querystring (ou usa 1 se não informado)
+    empresa = request.query_params.get('empresa') or 1
     try:
-        itens = buscar_produtos_TESTPRODUTO(query, None, limit)
+        empresa = int(empresa)
+    except Exception:
+        empresa = 1
+
+    try:
+        itens = buscar_produtos_TESTPRODUTO(query, empresa, limit)
         return Response({"count": len(itens), "results": itens}, status=status.HTTP_200_OK)
     except Exception as e:
         if settings.DEBUG:
             return Response({"detail": f"Erro na busca: {e}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         return Response({"detail": "Erro interno"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
 
 
 @api_view(['GET'])

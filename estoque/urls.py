@@ -7,5 +7,6 @@ urlpatterns = [
     path('produtos/', views.produtos_list, name='produtos-list'),                   # GET ?query=..&limit=..
     path('produtos/<int:idproduto>/', views.produto_detail, name='produto-detail'), # GET detalhe
     path('ajustar/', views.ajustar, name='estoque-ajustar'),                        # POST ajuste
-    
+    path('ajustar_lote/', views.ajustar_lote, name= 'ajustar_lote'),
+    path('inventario/', views.criar_inventario_view  , name= 'criar_inventario_view')
 ]
