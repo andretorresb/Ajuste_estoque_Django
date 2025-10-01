@@ -15,54 +15,6 @@ from .firebird_ops import (
     ajustar_lote_TESTPRODUTOESTOQUE,
 )
 
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def ajustar_lote(request):
-    """
-    POST /api/estoque/ajustar_lote/
-    Body JSON:
-    {
-      "empresa": 1,
-      "idalmox": 1,
-      "usuario_id": 1,
-      "usuario_label": "SUPORTE",
-      "motivo": "Ajuste de fechamento",
-      "items": [
-         {"idproduto": 3, "delta": 1},
-         {"idproduto": 5, "delta": -2, "motivo": "Quebra"}
-      ]
-    }
-    Retorna: [{idproduto, saldo}, ...]
-    """
-    data = request.data or {}
-    items = data.get('items')
-    if not items or not isinstance(items, list):
-        return Response({'detail': "items é obrigatório (lista)."}, status=status.HTTP_400_BAD_REQUEST)
-    empresa = data.get('empresa') or request.GET.get('empresa') or 1
-    try:
-        empresa = int(empresa)
-    except Exception:
-        return Response({'detail': 'empresa inválida'}, status=status.HTTP_400_BAD_REQUEST)
-
-    idalmox = data.get('idalmox') or 1
-    usuario_id = data.get('usuario_id') or data.get('usuario')
-    usuario_label = data.get('usuario_label') or data.get('usuarioName')
-
-    try:
-        results = ajustar_lote_TESTPRODUTOESTOQUE(
-            empresa=empresa,
-            items=items,
-            idalmox=idalmox,
-            usuario_id=usuario_id,
-            usuario_label=usuario_label,
-            motivo_geral=data.get('motivo')
-        )
-        return Response({'ok': True, 'results': results}, status=status.HTTP_200_OK)
-    except Exception as e:
-        if settings.DEBUG:
-            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'detail': 'Erro ao processar ajuste em lote'}, status=status.HTTP_400_BAD_REQUEST)
-
 
 
 @api_view(['POST'])
@@ -87,69 +39,6 @@ def criar_inventario_view(request):
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         return Response({"detail": "Erro ao criar inventario"}, status=status.HTTP_400_BAD_REQUEST)
 
-
-@api_view(['POST'])
-@permission_classes([AllowAny])
-def ajustar_lote(request):
-    """
-    POST /api/estoque/ajustar_lote/
-    body:
-    {
-      "empresa":1,
-      "idalmox":1,
-      "usuario_id":1,
-      "usuario_label":"SUPORTE",
-      "idinventario": null OR existing id,
-      "items":[ {"idproduto":123,"delta":1,"motivo":"..."}, ... ]
-    }
-    Se idinventario nao for passado -> cria um novo inventario e usa ele.
-    Para cada item chama ajustar_estoque_TESTPRODUTOESTOQUE(..., idinventario=...)
-    Retorna: {"idinventario": X, "results":[ {"idproduto":..., "saldo":...}, ... ]}
-    """
-    data = request.data or {}
-    empresa = data.get('empresa') or 1
-    idalmox = data.get('idalmox') or 1
-    usuario_id = data.get('usuario_id')
-    usuario_label = data.get('usuario_label')
-    idinventario = data.get('idinventario')  # optional
-    items = data.get('items') or []
-
-    if not isinstance(items, list) or len(items) == 0:
-        return Response({"detail": "Nenhum item para ajustar"}, status=status.HTTP_400_BAD_REQUEST)
-
-    try:
-        # cria inventario se nao informado
-        if not idinventario:
-            idinventario = criar_testinventario(empresa=empresa, idalmox=idalmox, usuario_id=usuario_id, usuario_label=usuario_label, motivo="Inventario de lote via API")
-
-        results = []
-        for it in items:
-            pid = it.get('idproduto')
-            delta = it.get('delta')
-            motivo = it.get('motivo')
-            if pid is None or delta is None:
-                results.append({"idproduto": pid, "error": "idproduto ou delta ausente"})
-                continue
-            try:
-                novo = ajustar_estoque_TESTPRODUTOESTOQUE(
-                    empresa=empresa,
-                    idproduto=pid,
-                    delta=delta,
-                    usuario_id=usuario_id,
-                    usuario_label=usuario_label,
-                    motivo=motivo,
-                    idalmox=idalmox,
-                    idinventario=idinventario
-                )
-                results.append({"idproduto": pid, "saldo": float(novo)})
-            except Exception as e:
-                results.append({"idproduto": pid, "error": str(e)})
-
-        return Response({"idinventario": int(idinventario), "results": results}, status=200)
-    except Exception as e:
-        if settings.DEBUG:
-            return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({"detail": "Erro ao processar lote"}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -216,68 +105,52 @@ def _resolve_user_label(usuario_id, usuario_label):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def ajustar(request):
+def ajustar_lote(request):
     """
-    POST /api/estoque/ajustar/
-    body: {"empresa":1,"idproduto":123,"delta":1,"motivo":"...", "usuario": 5, "usuario_label": "SUPORTE"}
-    - 'usuario' : id do usuário (inteiro). Opcional.
-    - 'usuario_label': string com o nome/login do usuário (opcional).
-    Prioridade: se usuário informado no body será usado; se não, tenta request.user (se autenticado).
+    POST /api/estoque/ajustar_lote/
+    body:
+    {
+      "empresa":1,
+      "idalmox":1,
+      "usuario_id":1,
+      "usuario_label":"SUPORTE",
+      "motivo":"Ajuste de fechamento",
+      "items":[ {"idproduto":123,"delta":1,"motivo":"..."}, ... ]
+    }
+    Usa a função em lote ajustar_lote_TESTPRODUTOESTOQUE que cria UM inventário
+    e insere todos os movimentos em sequência.
+    Retorna: {'ok': True, 'results': [{idproduto, saldo}, ...]}
     """
-    s = AjusteSerializer(data=request.data)
-    s.is_valid(raise_exception=True)
+    data = request.data or {}
+    items = data.get('items')
+    if not items or not isinstance(items, list):
+        return Response({'detail': "items é obrigatório (lista)."}, status=status.HTTP_400_BAD_REQUEST)
 
-    # empresa pode vir no body ou querystring; default 1
-    empresa = request.data.get('empresa') or request.GET.get('empresa') or 1
+    empresa = data.get('empresa') or request.GET.get('empresa') or 1
     try:
         empresa = int(empresa)
     except Exception:
-        return Response({"detail": "empresa inválida"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'empresa inválida'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # obter usuario_id (campo 'usuario' no body) ou request.user
-    usuario_id = None
-    try:
-        # aceitar 'usuario' ou 'usuario_id' no body (compatibilidade)
-        raw_user = None
-        if 'usuario' in request.data:
-            raw_user = request.data.get('usuario')
-        elif 'usuario_id' in request.data:
-            raw_user = request.data.get('usuario_id')
-
-        if raw_user not in (None, ''):
-            usuario_id = int(raw_user)
-        elif getattr(request, 'user', None) and getattr(request.user, 'is_authenticated', False):
-            # se o Django autentico estiver presente usa request.user.id
-            try:
-                usuario_id = int(getattr(request.user, 'id', None))
-            except Exception:
-                usuario_id = None
-    except Exception:
-        usuario_id = None
-
-    # usuario_label vindo no body (opcional)
-    usuario_label = request.data.get('usuario_label') or request.data.get('usuarioName') or request.data.get('usuario_nome')
-
-    # se só veio id e não label, tentamos resolver o label via buscar_usuarios_TGERUSUARIO
-    resolved_label = _resolve_user_label(usuario_id, usuario_label)
+    idalmox = data.get('idalmox') or 1
+    usuario_id = data.get('usuario_id') or data.get('usuario')
+    usuario_label = data.get('usuario_label') or data.get('usuarioName')
 
     try:
-        novo = ajustar_estoque_TESTPRODUTOESTOQUE(
+        results = ajustar_lote_TESTPRODUTOESTOQUE(
             empresa=empresa,
-            idproduto=s.validated_data['idproduto'],
-            delta=s.validated_data['delta'],
+            items=items,
+            idalmox=idalmox,
             usuario_id=usuario_id,
-            usuario_label=resolved_label,
-            motivo=s.validated_data.get('motivo'),
-            bloquear_negativo=True
+            usuario_label=usuario_label,
+            motivo_geral=data.get('motivo')
         )
-        return Response({'idproduto': s.validated_data['idproduto'], 'saldo': float(novo)}, status=status.HTTP_200_OK)
+        return Response({'ok': True, 'results': results}, status=status.HTTP_200_OK)
     except Exception as e:
-        # retornar mensagem útil em DEBUG
-        msg = str(e)
         if settings.DEBUG:
-            return Response({'detail': msg}, status=status.HTTP_400_BAD_REQUEST)
-        return Response({'detail': 'Erro ao ajustar estoque'}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        return Response({'detail': 'Erro ao processar ajuste em lote'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 
 @api_view(['GET'])

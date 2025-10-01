@@ -383,6 +383,8 @@ def ajustar_lote_TESTPRODUTOESTOQUE(
     """
     Cria um único TESTINVENTARIO e insere múltiplos movimentos (items).
     Retorna lista de saldos atualizados por item: [{idproduto, saldo}, ...]
+    Compatível com o comportamento anterior de ajustar_lote_TESTPRODUTOESTOQUE,
+    mas com o nome esperado (ajustar_estoque_TESTPRODUTOESTOQUE).
     """
     from decimal import Decimal, InvalidOperation
     import time
@@ -440,8 +442,8 @@ def ajustar_lote_TESTPRODUTOESTOQUE(
                     'EMPRESA': empresa,
                     'IDINVENTARIO': next_invid,
                     'IDALMOX': idalmox,
-                    'TIPO': 'AJU',
-                    'SITUACAO': 'ABERTO',
+                    'TIPO': 'INV',
+                    'SITUACAO': 'EFETIVADO',
                     'USUARIO': usuario_label if usuario_label else (str(usuario_id) if usuario_id else 'API'),
                     'OBS': motivo_geral or 'Inventário gerado automaticamente (lote)'
                 }
@@ -533,12 +535,9 @@ def ajustar_lote_TESTPRODUTOESTOQUE(
                     try:
                         cur.execute(insert_sql, tuple(params))
                     except Exception as ie:
-                        # se conflito de PK, recalcular e tentar novamente
+                        # se conflito de PK, recalcular e tentar novamente (fatal aqui)
                         msgie = str(ie).upper()
                         if 'UNIQUE' in msgie or 'CONSTRAINT' in msgie or '-803' in msgie or 'DUPLICAT' in msgie:
-                            cur.execute("SELECT COALESCE(MAX(IDMOVIMENTO),0)+1 FROM TESTPRODUTOMOVIMENTO WHERE EMPRESA = ?", (empresa,))
-                            row2 = cur.fetchone()
-                            next_idmov = int(row2[0]) if row2 and row2[0] is not None else next_idmov + 1
                             con.rollback()
                             cur.close()
                             raise RuntimeError("Conflito ao inserir movimento em lote; tente novamente.")
@@ -548,9 +547,13 @@ def ajustar_lote_TESTPRODUTOESTOQUE(
                     # incrementar idmov para próximo item
                     next_idmov += 1
 
-                    # após inserir, ler saldo para este produto
-                    cur.execute("SELECT COALESCE(ESTDISPONIVEL,0) FROM TESTPRODUTOESTOQUE WHERE EMPRESA = CAST(? AS INTEGER) AND IDPRODUTOPRINCIPAL = CAST(? AS INTEGER)",
-                                (empresa, pid))
+                    # após inserir, ler saldo para este produto FILTRANDO PELO ALMOX CORRETO
+                    cur.execute(
+                        "SELECT COALESCE(ESTDISPONIVEL,0) FROM TESTPRODUTOESTOQUE "
+                        "WHERE EMPRESA = CAST(? AS INTEGER) AND IDPRODUTOPRINCIPAL = CAST(? AS INTEGER) "
+                        "AND COALESCE(IDALMOX,1) = CAST(? AS INTEGER)",
+                        (empresa, pid, idalmox)
+                    )
                     rb = cur.fetchone()
                     saldo = float(rb[0]) if rb and rb[0] is not None else 0.0
                     results.append({'idproduto': pid, 'saldo': saldo})
