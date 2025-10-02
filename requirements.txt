@@ -1,6 +1,8 @@
 Django>=4.0,<5.0
-djangorestframework
+django_rest_framework
 firebird-driver
+django-cors-headers
+fdb
 opencv-python==4.8.1.78
 pyzbar==0.1.9
 Pillow==10.0.1

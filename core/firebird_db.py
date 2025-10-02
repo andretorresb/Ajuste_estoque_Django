@@ -3,7 +3,7 @@ import os
 from contextlib import contextmanager
 import fdb
 
-CHARSET = os.getenv("FIREBIRD_CHARSET", "UTF8")
+CHARSET = os.getenv("FIREBIRD_CHARSET", "ISO8859_1")
 
 # (Opcional) ajuda a achar o fbclient.dll no Windows 3.8+ se você informar a pasta no .env
 client_dir = os.getenv("FIREBIRD_CLIENT_DIR")

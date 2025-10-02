@@ -526,7 +526,12 @@ def ajustar_lote_TESTPRODUTOESTOQUE(
                     cur.execute("SELECT TRIM(DESCRICAO) FROM TESTPRODUTO WHERE IDPRODUTO = CAST(? AS INTEGER)", (pid,))
                     rr = cur.fetchone()
                     prod_name = (rr[0] or '').strip() if rr and rr[0] else ''
-                    descricao = (mot or prod_name or 'AJUSTE')[:250]
+
+                    # FORÇAR: descrição do movimento = nome do produto (obrigatório)
+                    if not prod_name:
+                        # falha clara para evitar inserir movimento sem descrição do produto
+                        raise RuntimeError(f"Descrição do produto não encontrada para idproduto {pid} — descrição é obrigatória.")
+                    descricao = prod_name[:250]
 
                     params = [
                         empresa, next_idmov, idtipomov, pid, pid,
