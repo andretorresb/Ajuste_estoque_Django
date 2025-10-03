@@ -471,9 +471,12 @@
     <div class="row">
       <!-- BUSCA -->
       <div class="col">
-        <div class="search-section">
+         <div class="search-section">
+          <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px">
+            <label for="empresa" style="font-weight:600; color:#333">Empresa:</label>
+            <input id="empresa" type="number" inputmode="numeric" min="1" value="1" style="width:100px; font-weight:600; font-size:18px" title="Empresa">
+          </div>
           <div class="rowline">
-            <input id="empresa" type="number" inputmode="numeric" min="1" value="1" style="width:90px" title="Empresa">
             <input id="q" type="search" inputmode="search" autocomplete="off"
                placeholder="Descrição (ex.: coca) ou código de barras…" style="flex:1" />
             <button id="btnBuscar" class="btn">Buscar</button>
