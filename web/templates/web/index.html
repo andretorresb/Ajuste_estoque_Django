@@ -654,9 +654,8 @@ const btnBuscar = document.getElementById('btnBuscar');
 /* ====== STATE ====== */
 let produtoSel = null;
 let quantidadeAtual = 1;
-let acaoPendente = null; // usado só para confirm modal single-action
+let acaoPendente = null;
 
-// lista de itens pendentes (lote)
 const pendingItems = [];
 
 /* ====== HELPERS ====== */
@@ -801,16 +800,32 @@ async function tryServerAuth(payload){
 async function doLogin(){
   loginError.style.display = 'none';
   loginError.textContent = '';
+  
   const sel = modalUsuario.value && modalUsuario.selectedOptions[0];
   const usuarioId = sel ? sel.value : (modalUsuario.value || '').trim();
   const usuarioLabel = sel ? (sel.dataset.label || sel.textContent) : usuarioId;
   const senha = modalSenha.value || '';
-  if (!usuarioId || !senha) { loginError.textContent = 'Informe usuário e senha.'; loginError.style.display = 'block'; return false; }
+  
+  // Validação: campos vazios
+  if (!usuarioId) {
+    loginError.textContent = 'Selecione um usuário.';
+    loginError.style.display = 'block';
+    return false;
+  }
+  
+  if (!senha) {
+    loginError.textContent = 'Digite a senha.';
+    loginError.style.display = 'block';
+    modalSenha.focus();
+    return false;
+  }
 
   btnModalLogin.disabled = true;
   btnModalLogin.textContent = 'Entrando...';
+  
   try {
     const auth = await tryServerAuth({ username: usuarioId, password: senha });
+    
     if (auth.ok){
       const data = auth.data || {};
       const label = data.nome || data.username || usuarioLabel;
@@ -818,10 +833,23 @@ async function doLogin(){
       hideLoginModal();
       return true;
     } else {
-      loginError.textContent = auth.message || 'Credenciais inválidas.';
+      // Validação: senha incorreta ou outros erros
+      if (auth.status === 401 || auth.status === 403) {
+        loginError.textContent = 'Senha incorreta. Tente novamente.';
+      } else if (auth.status === 404) {
+        loginError.textContent = 'Usuário não encontrado.';
+      } else {
+        loginError.textContent = auth.message || 'Erro ao fazer login. Verifique suas credenciais.';
+      }
       loginError.style.display = 'block';
+      modalSenha.value = '';
+      modalSenha.focus();
       return false;
     }
+  } catch(err) {
+    loginError.textContent = 'Erro ao conectar com o servidor.';
+    loginError.style.display = 'block';
+    return false;
   } finally {
     btnModalLogin.disabled = false;
     btnModalLogin.textContent = 'Entrar';
@@ -835,7 +863,6 @@ function logoutAndShowLogin(){ setCurrentUser(null); carregarUsuariosModal().fin
 
 /* ====== QUANTIDADE EDITÁVEL ====== */
 function updateQuantityDisplay(){
-  // escreve no input o valor atual validado
   quantidadeAtual = Number.isInteger(quantidadeAtual) ? quantidadeAtual : parseInt(quantidadeAtual, 10) || 1;
   if (quantidadeAtual < 1) quantidadeAtual = 1;
   quantityDisplay.value = String(quantidadeAtual);
@@ -853,9 +880,7 @@ function getQuantityFromInput(){
 function increaseQuantity(){ getQuantityFromInput(); quantidadeAtual = quantidadeAtual + 1; updateQuantityDisplay(); }
 function decreaseQuantity(){ getQuantityFromInput(); if (quantidadeAtual > 1){ quantidadeAtual = quantidadeAtual - 1; updateQuantityDisplay(); } }
 
-// input handlers
 quantityDisplay.addEventListener('input', () => {
-  // permite digitar sinal negativo apenas se quiser (mas normalize depois no blur/get)
   const t = quantityDisplay.value.replace(/[^\d-]/g, '');
   quantityDisplay.value = t;
 });
@@ -916,6 +941,12 @@ async function carregarDetalhe(idproduto){
     msg.innerHTML = '';
     quantidadeAtual = 1;
     updateQuantityDisplay();
+    
+    // Scroll suave para a seção de ajuste
+    setTimeout(() => {
+      ajusteBox.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+    
   } catch(e){
     detalhe.innerHTML = `<div class="err">Erro ao carregar: ${e}</div>`;
   }
@@ -951,8 +982,6 @@ async function ajustar(delta){
     const stk = document.getElementById('stk');
     if (stk) stk.textContent = fmt(produtoSel.estdisponivel);
     msg.innerHTML = `<div style="background:#d4edda; border:1px solid #c3e6cb; border-radius:12px; padding:12px; text-align:center"><div style="color:var(--ok); font-weight:700">✓ Ajuste aplicado</div><div>Novo estoque: <strong>${fmt(produtoSel.estdisponivel)}</strong></div></div>`;
-    // opcional: atualizar lista (buscar)
-    // buscar();
   } catch(e){
     msg.innerHTML = `<span class="err">✗ Falha: ${e}</span>`;
   }
@@ -1000,7 +1029,6 @@ async function confirmarLote(){
     msg.innerHTML = `<div class="ok" style="font-weight:700">Lote aplicado (${pendingItems.length} itens).</div>`;
     pendingItems.length = 0;
     renderPending();
-    // buscar();
   } catch(e){
     msg.innerHTML = `<span class="err">Falha ao enviar lote: ${e}</span>`;
   } finally {
@@ -1023,20 +1051,16 @@ function showConfirmModal(acao, quantidade){
 function hideConfirmModal(){ confirmOverlay.style.display = 'none'; acaoPendente = null; }
 
 /* ====== EVENTOS ====== */
-// busca
 btnBuscar.addEventListener('click', buscar);
 q.addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
 
-// scanner
 btnScanner.addEventListener('click', iniciarScanner);
 btnStopScanner.addEventListener('click', pararScanner);
 barcodeImage.addEventListener('change', (e)=> { const f = e.target.files[0]; if (f) processarImagem(f); });
 
-// quantidade controls
 btnIncrease.addEventListener('click', increaseQuantity);
 btnDecrease.addEventListener('click', decreaseQuantity);
 
-// add/remove -> empilhar no pending
 btnAdd.addEventListener('click', () => {
   if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
   const qty = Math.max(1, parseInt(quantityDisplay.value, 10) || 1);
@@ -1050,7 +1074,6 @@ btnRem.addEventListener('click', () => {
   renderPending();
 });
 
-// modal confirm single action
 btnConfirmAction.addEventListener('click', () => {
   if (!acaoPendente) return;
   const delta = acaoPendente.tipo === 'add' ? acaoPendente.quantidade : -acaoPendente.quantidade;
@@ -1058,7 +1081,6 @@ btnConfirmAction.addEventListener('click', () => {
 });
 btnCancelConfirm.addEventListener('click', hideConfirmModal);
 
-// login modal
 btnOpenLogin.addEventListener('click', ()=> { carregarUsuariosModal().finally(()=> showLoginModal()); });
 btnModalLogin.addEventListener('click', async ()=> { await doLogin(); });
 btnCancelLogin.addEventListener('click', ()=> hideLoginModal());
@@ -1067,7 +1089,6 @@ modalUsuario.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.pre
 modalUsuario.addEventListener('change', ()=> setTimeout(()=> modalSenha.focus(), 50));
 btnLogoutTop.addEventListener('click', ()=> logoutAndShowLogin());
 
-// fechar modais clicando fora
 loginOverlay.addEventListener('click', (e)=> { if (e.target === loginOverlay) hideLoginModal(); });
 confirmOverlay.addEventListener('click', (e)=> { if (e.target === confirmOverlay) hideConfirmModal(); });
 
@@ -1088,7 +1109,7 @@ renderPending();
 if ('serviceWorker' in navigator){
   navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}").catch(()=>{});
 }
-  </script>
+</script>
 
 </body>
 </html>
