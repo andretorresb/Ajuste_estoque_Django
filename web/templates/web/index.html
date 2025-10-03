@@ -448,6 +448,27 @@
     }
 
     a,button{ -webkit-tap-highlight-color:transparent }
+    
+    @media (max-width: 768px){
+  
+  /* AJUSTE DO SELECT DE EMPRESA NO MOBILE */
+  #empresa {
+    width: 100% !important; /* ocupa toda a largura disponível */
+    max-width: 100%;
+    font-size: 14px; /* fonte um pouco menor */
+  }
+  
+  /* Container do label + select de empresa */
+  .search-section > div:first-child {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  
+  .search-section > div:first-child label {
+    margin-bottom: 6px;
+  }
+}
+
   </style>
 </head>
 <body>
@@ -473,8 +494,10 @@
       <div class="col">
          <div class="search-section">
           <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px">
-            <label for="empresa" style="font-weight:600; color:#333">Empresa:</label>
-            <input id="empresa" type="number" inputmode="numeric" min="1" value="1" style="width:100px; font-weight:600; font-size:18px" title="Empresa">
+          <label for="empresa" style="font-weight:600; color:#333">Empresa:</label>
+          <select id="empresa" style="width:300px; font-weight:600; font-size:16px">
+          <option value="">Carregando empresas...</option>
+          </select>
           </div>
           <div class="rowline">
             <input id="q" type="search" inputmode="search" autocomplete="off"
@@ -612,6 +635,8 @@ const USERS_API = `${location.origin}/api/usuarios/`;
 const USERS_AUTH_API = `${location.origin}/api/usuarios/auth/`;
 
 /* ====== ELEMENTS ====== */
+const EMPRESAS_API = `${location.origin}/api/empresas/`;
+const empresaSelect = document.getElementById('empresa');
 const lista = document.getElementById('lista');
 const q = document.getElementById('q');
 const detalhe = document.getElementById('detalhe');
@@ -778,6 +803,57 @@ async function carregarUsuariosModal(){
     modalUsuario.innerHTML = '<option value="">(não foi possível carregar)</option>';
   }
 }
+
+/* ====== CARREGAR EMPRESAS ====== */
+async function carregarEmpresas(){
+  empresaSelect.innerHTML = '<option value="">Carregando...</option>';
+  try {
+    const r = await fetch(EMPRESAS_API);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const js = await r.json();
+    
+    empresaSelect.innerHTML = '<option value="">Selecione a empresa...</option>';
+    
+    let arr = [];
+    if (Array.isArray(js)) arr = js;
+    else if (js && Array.isArray(js.results)) arr = js.results;
+    else if (js && Array.isArray(js.data)) arr = js.data;
+    
+    arr.forEach(emp => {
+      const codigo = emp.codigo || emp.CODIGO;
+      const nome = emp.nome || emp.NOMEFANTASIA || emp.nomefantasia || '';
+      const razao = emp.razaosocial || emp.RAZAOSOCIAL || '';
+      
+      // Priorizar razão social, depois nome fantasia
+      const label = razao || nome || `Empresa ${codigo}`;
+      
+      const opt = document.createElement('option');
+      opt.value = codigo;
+      opt.textContent = `${codigo} - ${label}`;
+      empresaSelect.appendChild(opt);
+    });
+    
+    // Selecionar empresa 1 por padrão
+    empresaSelect.value = '1';
+    
+  } catch(e){
+    console.warn('Falha ao carregar empresas:', e);
+    // Buscar razão social da empresa 1 como fallback
+    empresaSelect.innerHTML = '<option value="1">1 - (Não foi possível carregar)</option>';
+    empresaSelect.value = '1';
+  }
+}
+
+(async function init(){
+  const saved = getSavedUser();
+  if (saved) setCurrentUser(saved.id, saved.label);
+  else setCurrentUser(null);
+  
+  await carregarEmpresas();  // ADICIONE ESTA LINHA
+  await carregarUsuariosModal();
+  
+  if (!saved) showLoginModal();
+})();
 
 async function tryServerAuth(payload){
   try {

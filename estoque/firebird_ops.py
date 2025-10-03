@@ -166,6 +166,35 @@ def buscar_usuarios_TGERUSUARIO():
         })
     return out
 
+# ---------- Buscar Empresas ----------
+def buscar_empresas_TGEREMPRESA():
+    """
+    Retorna lista de empresas ativas da tabela TGEREMPRESA.
+    Retorna: [{"codigo": int, "nome": str, "razaosocial": str}, ...]
+    """
+    sql = """
+      SELECT CODIGO, NOMEFANTASIA, RAZAOSOCIAL
+      FROM TGEREMPRESA
+      ORDER BY CODIGO
+    """
+    out = []
+    with fb_connect() as con:
+        cur = con.cursor()
+        try:
+            cur.execute(sql)
+            rows = cur.fetchall()
+            cols = [c[0].strip().upper() for c in cur.description]
+            
+            for r in rows:
+                d = dict(zip(cols, r))
+                out.append({
+                    "codigo": d.get("CODIGO"),
+                    "nome": (d.get("NOMEFANTASIA") or "").strip(),
+                    "razaosocial": (d.get("RAZAOSOCIAL") or "").strip(),
+                })
+        finally:
+            cur.close()
+    return out
 
 # ---------- BUSCA LISTA ----------
 def buscar_produtos_TESTPRODUTO(query: str | None, empresa: str | int | None, limit: int = 25):

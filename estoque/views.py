@@ -13,9 +13,20 @@ from .firebird_ops import (
     verificar_credenciais_TGERUSUARIO,
     criar_testinventario,
     ajustar_lote_TESTPRODUTOESTOQUE,
+    buscar_empresas_TGEREMPRESA,
 )
 
-
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def listar_empresas(request): 
+    """Retorna lista de empresas disponíveis"""
+    try:
+        empresas = buscar_empresas_TGEREMPRESA()
+        return Response({"results": empresas}, status=status.HTTP_200_OK)
+    except Exception as e:
+        if settings.DEBUG:
+            return Response({"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response({"detail": "Erro ao carregar empresas"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
