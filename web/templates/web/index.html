@@ -18,69 +18,69 @@
       --primary:#111;
       --light:#fff;
     }
-    
+
     *{box-sizing:border-box}
     body{
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; 
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial;
       margin:0;
       padding:16px;
       line-height:1.35;
       background: #f5f5f5;
       min-height: 100vh;
     }
-    
+
     .container {
       max-width: 1200px;
       margin: 0 auto;
     }
-    
+
     .row{display:flex; gap:var(--gap); align-items:flex-start; flex-wrap:wrap;}
     .col{flex:1 1 420px; min-width:280px}
     .card{
-      border:1px solid var(--border); 
-      border-radius:var(--radius); 
+      border:1px solid var(--border);
+      border-radius:var(--radius);
       padding:16px;
       background: var(--light);
       box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
-    
+
     input,button,select{
-      font-size:16px; 
-      padding:12px; 
+      font-size:16px;
+      padding:12px;
       height:44px;
       border: 1px solid var(--border);
       border-radius: var(--radius);
     }
-    
+
     input,select{width:100%}
-    
+
     .rowline{
-      display:flex; 
-      gap:8px; 
+      display:flex;
+      gap:8px;
       align-items:center;
       flex-wrap: wrap;
     }
-    
+
     .btn{
-      border:1px solid var(--primary); 
-      border-radius:var(--radius); 
-      background:var(--primary); 
-      color:var(--light); 
-      cursor:pointer; 
+      border:1px solid var(--primary);
+      border-radius:var(--radius);
+      background:var(--primary);
+      color:var(--light);
+      cursor:pointer;
       min-width:110px;
       font-weight: 500;
       transition: all 0.2s ease;
     }
-    
+
     .btn:hover {
       opacity: 0.9;
     }
-    
+
     .btn.light{
-      background:var(--light); 
+      background:var(--light);
       color:var(--primary);
     }
-    
+
     .btn.scanner {
       background: #0066cc;
       border-color: #0066cc;
@@ -89,70 +89,70 @@
       justify-content: center;
       gap: 8px;
     }
-    
+
     .btn:active{transform:scale(.98)}
-    
+
     ul{
-      list-style:none; 
-      padding:0; 
-      margin:10px 0 0; 
-      max-height: 45vh; 
-      overflow:auto; 
-      border:1px solid var(--border); 
+      list-style:none;
+      padding:0;
+      margin:10px 0 0;
+      max-height: 45vh;
+      overflow:auto;
+      border:1px solid var(--border);
       border-radius:var(--radius);
       background: var(--light);
     }
-    
+
     li{
-      padding:12px; 
-      border-bottom:1px solid #eee; 
+      padding:12px;
+      border-bottom:1px solid #eee;
       cursor:pointer;
       transition: background 0.2s ease;
     }
-    
+
     li:hover {
       background: #f8f9fa;
     }
-    
+
     li:last-child{border-bottom:0}
-    
+
     .muted{color:var(--muted)}
     .ok{color:var(--ok); font-weight:600}
     .err{color:var(--err); font-weight:600}
-    
+
     .pill{
-      padding:4px 12px; 
-      background:#06c; 
-      color:#fff; 
-      border-radius:999px; 
+      padding:4px 12px;
+      background:#06c;
+      color:#fff;
+      border-radius:999px;
       font-size:12px;
       font-weight: 500;
     }
-    
-    .user-controls { 
-      display:flex; 
-      gap:8px; 
-      align-items:center; 
+
+    .user-controls {
+      display:flex;
+      gap:8px;
+      align-items:center;
     }
-    
-    .small-btn { 
-      padding:8px 12px; 
-      height:auto; 
-      border-radius:8px; 
-      font-size:14px; 
-      min-width:0; 
-      cursor:pointer 
+
+    .small-btn {
+      padding:8px 12px;
+      height:auto;
+      border-radius:8px;
+      font-size:14px;
+      min-width:0;
+      cursor:pointer
     }
-    
-    .badge-current { 
-      background:#222; 
-      color:#fff; 
-      padding:6px 12px; 
-      border-radius:999px; 
-      font-size:13px; 
-      display:inline-block 
+
+    .badge-current {
+      background:#222;
+      color:#fff;
+      padding:6px 12px;
+      border-radius:999px;
+      font-size:13px;
+      display:inline-block
     }
-    
+
     /* Header Styles */
     .header {
       display: flex;
@@ -162,19 +162,19 @@
       flex-wrap: wrap;
       gap: 12px;
     }
-    
+
     .header-title {
       display: flex;
       align-items: center;
       gap: 12px;
     }
-    
+
     .user-area {
       display: flex;
       align-items: center;
       gap: 8px;
     }
-    
+
     /* Search Section */
     .search-section {
       background: var(--light);
@@ -183,7 +183,7 @@
       border: 1px solid var(--border);
       margin-bottom: 16px;
     }
-    
+
     /* Scanner Section */
     .scanner-section {
       background: var(--light);
@@ -193,7 +193,7 @@
       margin-bottom: 16px;
       text-align: center;
     }
-    
+
     .scanner-info {
       background: #fff3cd;
       border: 1px solid #ffeaa7;
@@ -202,21 +202,21 @@
       margin: 12px 0;
       text-align: left;
     }
-    
+
     .scanner-info ul {
       margin: 8px 0;
       padding-left: 20px;
     }
-    
+
     .scanner-info li {
       padding: 4px 0;
       border-bottom: none;
     }
-    
+
     .file-input {
       display: none;
     }
-    
+
     .file-label {
       display: inline-block;
       padding: 12px 20px;
@@ -226,7 +226,7 @@
       cursor: pointer;
       margin: 8px 0;
     }
-    
+
     .camera-preview {
       width: 100%;
       max-width: 400px;
@@ -236,85 +236,85 @@
       margin: 0 auto;
       display: none;
     }
-    
+
     /* Modal Styles */
-    .overlay { 
-      position:fixed; 
+    .overlay {
+      position:fixed;
       top:0;
       left:0;
       right:0;
       bottom:0;
-      background: rgba(0,0,0,0.55); 
-      display:flex; 
-      align-items:center; 
-      justify-content:center; 
+      background: rgba(0,0,0,0.55);
+      display:flex;
+      align-items:center;
+      justify-content:center;
       z-index:9999;
       padding: 20px;
     }
-    
-    .modal { 
+
+    .modal {
       width:100%;
       max-width: 400px;
-      background:#fff; 
-      border-radius:16px; 
-      padding:24px; 
+      background:#fff;
+      border-radius:16px;
+      padding:24px;
       box-shadow:0 10px 40px rgba(0,0,0,0.4);
     }
-    
-    .modal h3 { 
-      margin:0 0 16px; 
-      font-size:20px; 
+
+    .modal h3 {
+      margin:0 0 16px 0;
+      font-size:20px;
       text-align: center;
       font-weight: 600;
     }
-    
-    .modal .note { 
-      color:#666; 
-      font-size:14px; 
+
+    .modal .note {
+      color:#666;
+      font-size:14px;
       margin-bottom:20px;
       text-align: center;
       line-height: 1.4;
     }
-    
-    .modal .actions { 
-      display:flex; 
-      gap:8px; 
-      justify-content:center; 
+
+    .modal .actions {
+      display:flex;
+      gap:8px;
+      justify-content:center;
       margin-top:20px;
     }
-    
-    .modal input, .modal select { 
-      height:44px; 
-      font-size:16px; 
-      padding:8px 12px; 
+
+    .modal input, .modal select {
+      height:44px;
+      font-size:16px;
+      padding:8px 12px;
       margin-bottom: 16px;
       border: 1px solid #ddd;
       border-radius: 8px;
       width: 100%;
     }
-    
+
     .modal label {
       display: block;
       margin-bottom: 6px;
       font-weight: 500;
       color: #333;
     }
-    
-    .modal .err { 
-      color:var(--err); 
-      margin-top:8px; 
+
+    .modal .err {
+      color:var(--err);
+      margin-top:8px;
       font-weight:600;
       text-align: center;
       font-size: 14px;
     }
-    
+
     /* Product Detail */
     .product-detail {
       background: var(--light);
       border-radius: var(--radius);
       padding: 20px;
     }
-    
+
     .stock-info {
       background: #f8f9fa;
       padding: 16px;
@@ -322,18 +322,18 @@
       margin: 16px 0;
       border-left: 4px solid #06c;
     }
-    
+
     .adjustment-section {
       margin-top: 20px;
     }
-    
+
     .adjustment-actions {
       display: flex;
       gap: 8px;
       margin-top: 16px;
       flex-wrap: wrap;
     }
-    
+
     .quantity-controls {
       display: flex;
       gap: 12px;
@@ -341,7 +341,7 @@
       margin: 20px 0;
       justify-content: center;
     }
-    
+
     .quantity-btn {
       width: 50px;
       height: 50px;
@@ -356,8 +356,9 @@
       color: var(--primary);
       cursor: pointer;
     }
-    
-    .quantity-display {
+
+    /* input number visual (substitui div estático) */
+    input.quantity-display {
       font-size: 24px;
       font-weight: bold;
       min-width: 60px;
@@ -366,74 +367,86 @@
       border: 2px solid var(--border);
       border-radius: var(--radius);
       background: var(--light);
+      height: 44px;
+      -webkit-appearance: none;
+      appearance: none;
     }
-    
+    /* remove spinners em Webkit */
+    input.quantity-display::-webkit-outer-spin-button,
+    input.quantity-display::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input.quantity-display[type=number] {
+      -moz-appearance: textfield;
+    }
+
     /* Mobile Responsive */
     @media (max-width: 768px){
       body{
         margin:0;
         padding:12px;
       }
-      
-      .modal { 
+
+      .modal {
         width:100%;
         max-width: none;
         margin: 0;
         border-radius: 16px;
       }
-      
+
       .overlay {
         padding: 16px;
         align-items: flex-start;
         padding-top: 20%;
       }
-      
+
       .header {
         flex-direction: column;
         align-items: stretch;
       }
-      
+
       .header-title {
         justify-content: space-between;
       }
-      
+
       .user-area {
         justify-content: center;
         margin-top: 8px;
       }
-      
+
       .rowline {
         flex-direction: column;
       }
-      
+
       .rowline > * {
         width: 100%;
       }
-      
+
       .adjustment-actions {
         flex-direction: column;
       }
-      
+
       .adjustment-actions .btn {
         width: 100%;
       }
-      
+
       .quantity-controls {
         gap: 8px;
       }
-      
+
       .quantity-btn {
         width: 44px;
         height: 44px;
         font-size: 18px;
       }
-      
-      .quantity-display {
+
+      input.quantity-display {
         font-size: 20px;
         min-width: 50px;
       }
     }
-    
+
     a,button{ -webkit-tap-highlight-color:transparent }
   </style>
 </head>
@@ -476,7 +489,7 @@
         <!-- Scanner Section -->
         <div class="scanner-section" id="scannerSection" style="display:none">
           <h3 style="margin: 0 0 12px 0;">Leitor de Código de Barras</h3>
-          
+
           <div class="scanner-info">
             <strong>Como usar:</strong>
             <ul>
@@ -498,7 +511,7 @@
           </div>
 
           <div id="scannerResult" style="margin-top:12px; padding:12px; background:#f8f9fa; border-radius:var(--radius); display:none"></div>
-          
+
           <div class="actions" style="margin-top:16px">
             <button id="btnStopScanner" class="btn light">Fechar</button>
           </div>
@@ -513,22 +526,22 @@
           <div id="detalhe" class="muted">Selecione um produto à esquerda…</div>
           <div id="ajuste" style="display:none">
             <hr style="margin:20px 0">
-            
+
             <div class="adjustment-section">
               <h3 style="margin: 0 0 16px 0; font-size: 18px; text-align: center;">Ajuste de Quantidade</h3>
-              
+
               <div class="quantity-controls">
-                <button id="btnDecrease" class="quantity-btn">−</button>
-                <div id="quantityDisplay" class="quantity-display">1</div>
-                <button id="btnIncrease" class="quantity-btn">+</button>
+                <button id="btnDecrease" class="quantity-btn" type="button">−</button>
+                <input id="quantityDisplay" class="quantity-display" type="number" min="1" step="1" value="1" inputmode="numeric" aria-label="Quantidade" />
+                <button id="btnIncrease" class="quantity-btn" type="button">+</button>
               </div>
-              
+
               <div class="adjustment-actions">
                 <button id="btnAdd" class="btn">Adicionar</button>
                 <button id="btnRem" class="btn light">Remover</button>
               </div>
             </div>
-            
+
             <div id="msg" style="margin-top:20px; min-height: 20px;"></div>
           </div>
         </div>
@@ -666,7 +679,6 @@ function getSavedUser(){ const id = localStorage.getItem('ajuste_usuario_id'); c
 
 /* ====== PENDING UI (LOTE) ====== */
 function ensurePendingUI(){
-  // cria área pendente abaixo do ajuste se ainda não existir
   if (document.getElementById('pendingBox')) return;
   const container = document.createElement('div');
   container.id = 'pendingBox';
@@ -818,10 +830,36 @@ function hideLoginModal(){ loginOverlay.style.display = 'none'; }
 
 function logoutAndShowLogin(){ setCurrentUser(null); carregarUsuariosModal().finally(()=> showLoginModal()); }
 
-/* ====== QUANTIDADE ====== */
-function updateQuantityDisplay(){ quantityDisplay.textContent = String(quantidadeAtual); }
-function increaseQuantity(){ quantidadeAtual = Math.max(1, parseInt(quantidadeAtual)+1); updateQuantityDisplay(); }
-function decreaseQuantity(){ quantidadeAtual = Math.max(1, parseInt(quantidadeAtual)-1); updateQuantityDisplay(); }
+/* ====== QUANTIDADE EDITÁVEL ====== */
+function updateQuantityDisplay(){
+  // escreve no input o valor atual validado
+  quantidadeAtual = Number.isInteger(quantidadeAtual) ? quantidadeAtual : parseInt(quantidadeAtual, 10) || 1;
+  if (quantidadeAtual < 1) quantidadeAtual = 1;
+  quantityDisplay.value = String(quantidadeAtual);
+}
+
+function getQuantityFromInput(){
+  let v = parseInt(quantityDisplay.value, 10);
+  if (!Number.isFinite(v) || isNaN(v)) v = 1;
+  if (v < 1) v = 1;
+  quantidadeAtual = v;
+  quantityDisplay.value = String(quantidadeAtual);
+  return quantidadeAtual;
+}
+
+function increaseQuantity(){ getQuantityFromInput(); quantidadeAtual = quantidadeAtual + 1; updateQuantityDisplay(); }
+function decreaseQuantity(){ getQuantityFromInput(); if (quantidadeAtual > 1){ quantidadeAtual = quantidadeAtual - 1; updateQuantityDisplay(); } }
+
+// input handlers
+quantityDisplay.addEventListener('input', () => {
+  // permite digitar sinal negativo apenas se quiser (mas normalize depois no blur/get)
+  const t = quantityDisplay.value.replace(/[^\d-]/g, '');
+  quantityDisplay.value = t;
+});
+quantityDisplay.addEventListener('blur', () => { getQuantityFromInput(); });
+quantityDisplay.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); getQuantityFromInput(); btnAdd.focus(); }
+});
 
 /* ====== BUSCAR PRODUTOS ====== */
 async function buscar(){
@@ -910,7 +948,7 @@ async function ajustar(delta){
     const stk = document.getElementById('stk');
     if (stk) stk.textContent = fmt(produtoSel.estdisponivel);
     msg.innerHTML = `<div style="background:#d4edda; border:1px solid #c3e6cb; border-radius:12px; padding:12px; text-align:center"><div style="color:var(--ok); font-weight:700">✓ Ajuste aplicado</div><div>Novo estoque: <strong>${fmt(produtoSel.estdisponivel)}</strong></div></div>`;
-    // opcional: atualizar lista (buscar) -> cuidado com duplicação caso backend não filtrou por almox
+    // opcional: atualizar lista (buscar)
     // buscar();
   } catch(e){
     msg.innerHTML = `<span class="err">✗ Falha: ${e}</span>`;
@@ -923,7 +961,6 @@ async function confirmarLote(){
   const usuario = getSavedUser();
   if (!usuario) { msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>'; showLoginModal(); return; }
 
-  // preparar payload
   const body = {
     empresa: Number(document.getElementById('empresa').value || 1),
     idalmox: 1,
@@ -948,9 +985,7 @@ async function confirmarLote(){
     const js = ct.includes('application/json') ? await r.json() : {};
     if (!r.ok) { msg.innerHTML = `<span class="err">Erro lote: ${js.detail || r.statusText}</span>`; return; }
 
-    // resultado: js.results = [{idproduto, saldo}, ...]
     if (Array.isArray(js.results)) {
-      // se o produto atual estiver no lote, atualiza seu estoque
       const found = js.results.find(x => Number(x.idproduto) === Number(produtoSel && produtoSel.idproduto));
       if (found) {
         produtoSel.estdisponivel = found.saldo;
@@ -962,7 +997,6 @@ async function confirmarLote(){
     msg.innerHTML = `<div class="ok" style="font-weight:700">Lote aplicado (${pendingItems.length} itens).</div>`;
     pendingItems.length = 0;
     renderPending();
-    // opcional: atualizar lista principal (buscar)
     // buscar();
   } catch(e){
     msg.innerHTML = `<span class="err">Falha ao enviar lote: ${e}</span>`;
@@ -1002,13 +1036,13 @@ btnDecrease.addEventListener('click', decreaseQuantity);
 // add/remove -> empilhar no pending
 btnAdd.addEventListener('click', () => {
   if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
-  const qty = Math.max(1, parseInt(quantidadeAtual) || 1);
+  const qty = Math.max(1, parseInt(quantityDisplay.value, 10) || 1);
   pendingItems.push({ idproduto: produtoSel.idproduto, descricao: produtoSel.descricao, delta: qty });
   renderPending();
 });
 btnRem.addEventListener('click', () => {
   if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
-  const qty = Math.max(1, parseInt(quantidadeAtual) || 1);
+  const qty = Math.max(1, parseInt(quantityDisplay.value, 10) || 1);
   pendingItems.push({ idproduto: produtoSel.idproduto, descricao: produtoSel.descricao, delta: -qty });
   renderPending();
 });
@@ -1051,7 +1085,7 @@ renderPending();
 if ('serviceWorker' in navigator){
   navigator.serviceWorker.register("{% static 'js/serviceworker.js' %}").catch(()=>{});
 }
-</script>
+  </script>
 
 </body>
 </html>
