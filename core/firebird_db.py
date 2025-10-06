@@ -1,34 +1,41 @@
-# core/firebird_db.py
-import os
-from contextlib import contextmanager
-import fdb
+import firebirdsql
+import logging
+from .config_loader import carregar_config_ello
 
-CHARSET = os.getenv("FIREBIRD_CHARSET", "ISO8859_1")
+logger = logging.getLogger(__name__)
 
-# (Opcional) ajuda a achar o fbclient.dll no Windows 3.8+ se você informar a pasta no .env
-client_dir = os.getenv("FIREBIRD_CLIENT_DIR")
-if client_dir:
-    try:
-        os.add_dll_directory(client_dir)
-    except Exception:
-        pass
+# Carregar configuração do ello.ini ao iniciar Django
+try:
+    DB_CONFIG = carregar_config_ello()
+    CHARSET = DB_CONFIG['charset']
+    logger.info(f"Configuração carregada: {DB_CONFIG['database']}")
+except Exception as e:
+    logger.error(f"Erro ao carregar configuração: {e}")
+    DB_CONFIG = None
+    CHARSET = 'ISO8859_1'
 
-def get_dsn():
-    dsn = os.getenv("FIREBIRD_DSN")
-    if not dsn:
-        raise RuntimeError("FIREBIRD_DSN não configurado")
-    return dsn
-
-@contextmanager
 def fb_connect():
-    con = fdb.connect(
-        dsn=get_dsn(),
-        user=os.getenv("FIREBIRD_USER", "SYSDBA"),
-        password=os.getenv("FIREBIRD_PASSWORD", "masterkey"),
-        charset=CHARSET,
-    )
+    """Conecta ao Firebird usando configurações do ello.ini"""
+    if not DB_CONFIG:
+        raise RuntimeError(
+            "Configuração do banco não foi carregada!\n"
+            "Verifique se o arquivo ello.ini existe."
+        )
+    
     try:
-        yield con
-    finally:
-        try: con.close()
-        except Exception: pass
+        logger.info('Conectando ao banco de dados Firebird...')
+        
+        connection = firebirdsql.connect(
+            user=DB_CONFIG['username'],
+            password=DB_CONFIG['password'],
+            database=DB_CONFIG['database'],
+            host=DB_CONFIG['hostname'],
+            charset=DB_CONFIG['charset']
+        )
+        
+        logger.info('Conexão estabelecida com sucesso.')
+        return connection
+        
+    except Exception as e:
+        logger.error(f'Erro ao conectar ao banco: {e}')
+        raise ConnectionError(f"Falha ao conectar no Firebird: {e}")

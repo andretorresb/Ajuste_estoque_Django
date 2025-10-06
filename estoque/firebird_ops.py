@@ -7,6 +7,7 @@ import re
 import base64
 import itertools
 
+
 getcontext().prec = 28  # boa precisão p/ NUMERIC(18,4)
 
 
