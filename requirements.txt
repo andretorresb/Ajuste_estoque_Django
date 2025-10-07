@@ -5,9 +5,10 @@ django-cors-headers
 fdb
 opencv-python==4.8.1.78
 pyzbar==0.1.9
-Pillow==10.0.1
 numpy==1.24.3
 firebirdsql==1.2.2
 passlib
 pyngrok==6.0.0
 waitress
+dotenv
+django-cors-headers

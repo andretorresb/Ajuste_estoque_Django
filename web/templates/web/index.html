@@ -36,13 +36,6 @@
 
     .row{display:flex; gap:var(--gap); align-items:flex-start; flex-wrap:wrap;}
     .col{flex:1 1 420px; min-width:280px}
-    .card{
-      border:1px solid var(--border);
-      border-radius:var(--radius);
-      padding:16px;
-      background: var(--light);
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    }
 
     input,button,select{
       font-size:16px;
@@ -72,24 +65,8 @@
       transition: all 0.2s ease;
     }
 
-    .btn:hover {
-      opacity: 0.9;
-    }
-
-    .btn.light{
-      background:var(--light);
-      color:var(--primary);
-    }
-
-    .btn.scanner {
-      background: #0066cc;
-      border-color: #0066cc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
-
+    .btn:hover{opacity: 0.9;}
+    .btn.light{background:var(--light);color:var(--primary);}
     .btn:active{transform:scale(.98)}
 
     ul{
@@ -110,10 +87,7 @@
       transition: background 0.2s ease;
     }
 
-    li:hover {
-      background: #f8f9fa;
-    }
-
+    li:hover{background: #f8f9fa;}
     li:last-child{border-bottom:0}
 
     .muted{color:var(--muted)}
@@ -127,12 +101,6 @@
       border-radius:999px;
       font-size:12px;
       font-weight: 500;
-    }
-
-    .user-controls {
-      display:flex;
-      gap:8px;
-      align-items:center;
     }
 
     .small-btn {
@@ -153,7 +121,6 @@
       display:inline-block
     }
 
-    /* Header Styles */
     .header {
       display: flex;
       justify-content: space-between;
@@ -175,7 +142,6 @@
       gap: 8px;
     }
 
-    /* Search Section */
     .search-section {
       background: var(--light);
       padding: 16px;
@@ -184,60 +150,6 @@
       margin-bottom: 16px;
     }
 
-    /* Scanner Section */
-    .scanner-section {
-      background: var(--light);
-      padding: 16px;
-      border-radius: var(--radius);
-      border: 1px solid var(--border);
-      margin-bottom: 16px;
-      text-align: center;
-    }
-
-    .scanner-info {
-      background: #fff3cd;
-      border: 1px solid #ffeaa7;
-      border-radius: var(--radius);
-      padding: 16px;
-      margin: 12px 0;
-      text-align: left;
-    }
-
-    .scanner-info ul {
-      margin: 8px 0;
-      padding-left: 20px;
-    }
-
-    .scanner-info li {
-      padding: 4px 0;
-      border-bottom: none;
-    }
-
-    .file-input {
-      display: none;
-    }
-
-    .file-label {
-      display: inline-block;
-      padding: 12px 20px;
-      background: #0066cc;
-      color: white;
-      border-radius: var(--radius);
-      cursor: pointer;
-      margin: 8px 0;
-    }
-
-    .camera-preview {
-      width: 100%;
-      max-width: 400px;
-      height: 300px;
-      background: #000;
-      border-radius: var(--radius);
-      margin: 0 auto;
-      display: none;
-    }
-
-    /* Modal Styles */
     .overlay {
       position:fixed;
       top:0;
@@ -308,7 +220,6 @@
       font-size: 14px;
     }
 
-    /* Product Detail */
     .product-detail {
       background: var(--light);
       border-radius: var(--radius);
@@ -357,7 +268,6 @@
       cursor: pointer;
     }
 
-    /* input number visual (substitui div estático) */
     input.quantity-display {
       font-size: 24px;
       font-weight: bold;
@@ -371,22 +281,19 @@
       -webkit-appearance: none;
       appearance: none;
     }
-    /* remove spinners em Webkit */
+    
     input.quantity-display::-webkit-outer-spin-button,
     input.quantity-display::-webkit-inner-spin-button {
       -webkit-appearance: none;
       margin: 0;
     }
+    
     input.quantity-display[type=number] {
       -moz-appearance: textfield;
     }
 
-    /* Mobile Responsive */
     @media (max-width: 768px){
-      body{
-        margin:0;
-        padding:12px;
-      }
+      body{margin:0;padding:12px;}
 
       .modal {
         width:100%;
@@ -445,30 +352,24 @@
         font-size: 20px;
         min-width: 50px;
       }
+
+      #empresa {
+        width: 100% !important;
+        max-width: 100%;
+        font-size: 14px;
+      }
+      
+      .search-section > div:first-child {
+        flex-direction: column;
+        align-items: stretch !important;
+      }
+      
+      .search-section > div:first-child label {
+        margin-bottom: 6px;
+      }
     }
 
-    a,button{ -webkit-tap-highlight-color:transparent }
-    
-    @media (max-width: 768px){
-  
-  /* AJUSTE DO SELECT DE EMPRESA NO MOBILE */
-  #empresa {
-    width: 100% !important; /* ocupa toda a largura disponível */
-    max-width: 100%;
-    font-size: 14px; /* fonte um pouco menor */
-  }
-  
-  /* Container do label + select de empresa */
-  .search-section > div:first-child {
-    flex-direction: column;
-    align-items: stretch !important;
-  }
-  
-  .search-section > div:first-child label {
-    margin-bottom: 6px;
-  }
-}
-
+    a,button{-webkit-tap-highlight-color:transparent}
   </style>
 </head>
 <body>
@@ -492,54 +393,22 @@
     <div class="row">
       <!-- BUSCA -->
       <div class="col">
-         <div class="search-section">
+        <div class="search-section">
           <div style="margin-bottom:12px; display:flex; align-items:center; gap:8px">
-          <label for="empresa" style="font-weight:600; color:#333">Empresa:</label>
-          <select id="empresa" style="width:300px; font-weight:600; font-size:16px">
-          <option value="">Carregando empresas...</option>
-          </select>
+            <label for="empresa" style="font-weight:600; color:#333">Empresa:</label>
+            <select id="empresa" style="width:300px; font-weight:600; font-size:16px">
+              <option value="">Carregando empresas...</option>
+            </select>
           </div>
+          
           <div class="rowline">
             <input id="q" type="search" inputmode="search" autocomplete="off"
                placeholder="Descrição (ex.: coca) ou código de barras…" style="flex:1" />
             <button id="btnBuscar" class="btn">Buscar</button>
-            <button id="btnScanner" class="btn scanner" title="Ler código de barras">
-              📷
-            </button>
           </div>
+          
           <div class="muted" style="margin-top:8px; font-size:14px">
-            Dica: no leitor, foque o campo e leia o código de barras.
-          </div>
-        </div>
-
-        <!-- Scanner Section -->
-        <div class="scanner-section" id="scannerSection" style="display:none">
-          <h3 style="margin: 0 0 12px 0;">Leitor de Código de Barras</h3>
-
-          <div class="scanner-info">
-            <strong>Como usar:</strong>
-            <ul>
-              <li><strong>Opção 1:</strong> Use um app de leitor de código de barras no celular e cole o resultado no campo de busca</li>
-              <li><strong>Opção 2:</strong> Tire uma foto do código de barras e faça upload</li>
-              <li><strong>Opção 3:</strong> Digite manualmente o código no campo de busca</li>
-            </ul>
-          </div>
-
-          <!-- Upload de imagem -->
-          <div style="margin: 16px 0;">
-            <label for="barcodeImage" class="file-label">
-              📸 Tirar Foto ou Selecionar Imagem
-            </label>
-            <input type="file" id="barcodeImage" accept="image/*" capture="camera" class="file-input">
-            <div class="muted" style="font-size:12px; margin-top:4px">
-              Tire uma foto do código de barras ou selecione uma imagem
-            </div>
-          </div>
-
-          <div id="scannerResult" style="margin-top:12px; padding:12px; background:#f8f9fa; border-radius:var(--radius); display:none"></div>
-
-          <div class="actions" style="margin-top:16px">
-            <button id="btnStopScanner" class="btn light">Fechar</button>
+            Digite o nome do produto ou o código de barras e clique em Buscar.
           </div>
         </div>
 
@@ -570,30 +439,6 @@
 
             <div id="msg" style="margin-top:20px; min-height: 20px;"></div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Modal de Confirmação -->
-    <div id="confirmOverlay" class="overlay" style="display:none">
-      <div class="modal" role="dialog" aria-modal="true">
-        <h3 id="confirmTitle">Confirmar Ajuste</h3>
-        <div class="note" id="confirmMessage">
-          Deseja confirmar o ajuste no estoque?
-        </div>
-
-        <div style="background: #f8f9fa; padding: 16px; border-radius: 8px; margin: 16px 0;">
-          <div style="text-align: center; font-size: 16px;">
-            <strong id="confirmAction"></strong>
-          </div>
-          <div style="text-align: center; font-size: 14px; color: #666; margin-top: 4px;">
-            Quantidade: <strong id="confirmQuantity">1</strong>
-          </div>
-        </div>
-
-        <div class="actions">
-          <button id="btnCancelConfirm" class="btn light">Cancelar</button>
-          <button id="btnConfirmAction" class="btn">Confirmar</button>
         </div>
       </div>
     </div>
@@ -633,9 +478,9 @@
 const API_BASE = `${location.origin}/api/estoque`;
 const USERS_API = `${location.origin}/api/usuarios/`;
 const USERS_AUTH_API = `${location.origin}/api/usuarios/auth/`;
+const EMPRESAS_API = `${location.origin}/api/empresas/`;
 
 /* ====== ELEMENTS ====== */
-const EMPRESAS_API = `${location.origin}/api/empresas/`;
 const empresaSelect = document.getElementById('empresa');
 const lista = document.getElementById('lista');
 const q = document.getElementById('q');
@@ -644,15 +489,7 @@ const ajusteBox = document.getElementById('ajuste');
 const quantityDisplay = document.getElementById('quantityDisplay');
 const msg = document.getElementById('msg');
 
-const btnScanner = document.getElementById('btnScanner');
-const scannerSection = document.getElementById('scannerSection');
-const scannerResult = document.getElementById('scannerResult');
-const barcodeImage = document.getElementById('barcodeImage');
-const btnStopScanner = document.getElementById('btnStopScanner');
-
 const loginOverlay = document.getElementById('loginOverlay');
-const confirmOverlay = document.getElementById('confirmOverlay');
-
 const modalUsuario = document.getElementById('modalUsuario');
 const modalSenha = document.getElementById('modalSenha');
 const btnModalLogin = document.getElementById('btnModalLogin');
@@ -663,15 +500,8 @@ const currentUserBadge = document.getElementById('currentUserBadge');
 const btnOpenLogin = document.getElementById('btnOpenLogin');
 const btnLogoutTop = document.getElementById('btnLogoutTop');
 
-const confirmTitle = document.getElementById('confirmTitle');
-const confirmAction = document.getElementById('confirmAction');
-const confirmQuantity = document.getElementById('confirmQuantity');
-const confirmMessage = document.getElementById('confirmMessage');
-const btnConfirmAction = document.getElementById('btnConfirmAction');
-const btnCancelConfirm = document.getElementById('btnCancelConfirm');
-
-const btnIncrease = document.getElementById('btnIncrease');
-const btnDecrease = document.getElementById('btnDecrease');
+const btnIncrease = document.getElementById('btnDecrease');
+const btnDecrease = document.getElementById('btnIncrease');
 const btnAdd = document.getElementById('btnAdd');
 const btnRem = document.getElementById('btnRem');
 const btnBuscar = document.getElementById('btnBuscar');
@@ -679,8 +509,6 @@ const btnBuscar = document.getElementById('btnBuscar');
 /* ====== STATE ====== */
 let produtoSel = null;
 let quantidadeAtual = 1;
-let acaoPendente = null;
-
 const pendingItems = [];
 
 /* ====== HELPERS ====== */
@@ -702,7 +530,12 @@ function setCurrentUser(id, label) {
     btnOpenLogin.style.display = '';
   }
 }
-function getSavedUser(){ const id = localStorage.getItem('ajuste_usuario_id'); const label = localStorage.getItem('ajuste_usuario_label'); return id ? { id: id, label: label } : null; }
+
+function getSavedUser(){ 
+  const id = localStorage.getItem('ajuste_usuario_id'); 
+  const label = localStorage.getItem('ajuste_usuario_label'); 
+  return id ? { id: id, label: label } : null; 
+}
 
 /* ====== PENDING UI (LOTE) ====== */
 function ensurePendingUI(){
@@ -760,17 +593,6 @@ function renderPending(){
   });
 }
 
-/* ====== SCANNER (simples) ====== */
-function iniciarScanner(){ scannerSection.style.display = 'block'; scannerResult.style.display = 'none'; }
-function pararScanner(){ scannerSection.style.display = 'none'; scannerResult.style.display = 'none'; }
-function processarImagem(file){
-  scannerResult.innerHTML = '<span class="muted">Processando imagem... (em desenvolvimento)</span>';
-  scannerResult.style.display = 'block';
-  setTimeout(()=> {
-    scannerResult.innerHTML = `<span class="muted">Funcionalidade em desenvolvimento.</span><br><span class="ok">Por favor, digite o código manualmente.</span>`;
-  }, 700);
-}
-
 /* ====== LOGIN ====== */
 async function carregarUsuariosModal(){
   modalUsuario.innerHTML = '<option value="">Carregando...</option>';
@@ -823,8 +645,6 @@ async function carregarEmpresas(){
       const codigo = emp.codigo || emp.CODIGO;
       const nome = emp.nome || emp.NOMEFANTASIA || emp.nomefantasia || '';
       const razao = emp.razaosocial || emp.RAZAOSOCIAL || '';
-      
-      // Priorizar razão social, depois nome fantasia
       const label = razao || nome || `Empresa ${codigo}`;
       
       const opt = document.createElement('option');
@@ -833,27 +653,13 @@ async function carregarEmpresas(){
       empresaSelect.appendChild(opt);
     });
     
-    // Selecionar empresa 1 por padrão
     empresaSelect.value = '1';
-    
   } catch(e){
     console.warn('Falha ao carregar empresas:', e);
-    // Buscar razão social da empresa 1 como fallback
     empresaSelect.innerHTML = '<option value="1">1 - (Não foi possível carregar)</option>';
     empresaSelect.value = '1';
   }
 }
-
-(async function init(){
-  const saved = getSavedUser();
-  if (saved) setCurrentUser(saved.id, saved.label);
-  else setCurrentUser(null);
-  
-  await carregarEmpresas();  // ADICIONE ESTA LINHA
-  await carregarUsuariosModal();
-  
-  if (!saved) showLoginModal();
-})();
 
 async function tryServerAuth(payload){
   try {
@@ -882,7 +688,6 @@ async function doLogin(){
   const usuarioLabel = sel ? (sel.dataset.label || sel.textContent) : usuarioId;
   const senha = modalSenha.value || '';
   
-  // Validação: campos vazios
   if (!usuarioId) {
     loginError.textContent = 'Selecione um usuário.';
     loginError.style.display = 'block';
@@ -909,7 +714,6 @@ async function doLogin(){
       hideLoginModal();
       return true;
     } else {
-      // Validação: senha incorreta ou outros erros
       if (auth.status === 401 || auth.status === 403) {
         loginError.textContent = 'Senha incorreta. Tente novamente.';
       } else if (auth.status === 404) {
@@ -932,10 +736,20 @@ async function doLogin(){
   }
 }
 
-function showLoginModal(){ loginError.style.display = 'none'; loginError.textContent=''; modalSenha.value=''; loginOverlay.style.display = 'flex'; setTimeout(()=> modalUsuario.focus(), 60); }
+function showLoginModal(){ 
+  loginError.style.display = 'none'; 
+  loginError.textContent=''; 
+  modalSenha.value=''; 
+  loginOverlay.style.display = 'flex'; 
+  setTimeout(()=> modalUsuario.focus(), 60); 
+}
+
 function hideLoginModal(){ loginOverlay.style.display = 'none'; }
 
-function logoutAndShowLogin(){ setCurrentUser(null); carregarUsuariosModal().finally(()=> showLoginModal()); }
+function logoutAndShowLogin(){ 
+  setCurrentUser(null); 
+  carregarUsuariosModal().finally(()=> showLoginModal()); 
+}
 
 /* ====== QUANTIDADE EDITÁVEL ====== */
 function updateQuantityDisplay(){
@@ -953,16 +767,33 @@ function getQuantityFromInput(){
   return quantidadeAtual;
 }
 
-function increaseQuantity(){ getQuantityFromInput(); quantidadeAtual = quantidadeAtual + 1; updateQuantityDisplay(); }
-function decreaseQuantity(){ getQuantityFromInput(); if (quantidadeAtual > 1){ quantidadeAtual = quantidadeAtual - 1; updateQuantityDisplay(); } }
+function increaseQuantity(){ 
+  getQuantityFromInput(); 
+  quantidadeAtual = quantidadeAtual + 1; 
+  updateQuantityDisplay(); 
+}
+
+function decreaseQuantity(){ 
+  getQuantityFromInput(); 
+  if (quantidadeAtual > 1){ 
+    quantidadeAtual = quantidadeAtual - 1; 
+    updateQuantityDisplay(); 
+  } 
+}
 
 quantityDisplay.addEventListener('input', () => {
   const t = quantityDisplay.value.replace(/[^\d-]/g, '');
   quantityDisplay.value = t;
 });
+
 quantityDisplay.addEventListener('blur', () => { getQuantityFromInput(); });
+
 quantityDisplay.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') { e.preventDefault(); getQuantityFromInput(); btnAdd.focus(); }
+  if (e.key === 'Enter') { 
+    e.preventDefault(); 
+    getQuantityFromInput(); 
+    btnAdd.focus(); 
+  }
 });
 
 /* ====== BUSCAR PRODUTOS ====== */
@@ -1028,46 +859,15 @@ async function carregarDetalhe(idproduto){
   }
 }
 
-/* ====== AJUSTE SINGULAR (mantido para compatibilidade) ====== */
-async function ajustar(delta){
-  if (!produtoSel) return;
-  const usuario = getSavedUser();
-  if (!usuario) { msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>'; showLoginModal(); return; }
-
-  const body = {
-    empresa: Number(document.getElementById('empresa').value || 1),
-    idproduto: Number(produtoSel.idproduto),
-    delta: Number(delta),
-    motivo: ''
-  };
-  if (usuario && usuario.id) body.usuario_id = Number(usuario.id);
-
-  hideConfirmModal();
-  msg.innerHTML = '<div style="text-align:center">Enviando…</div>';
-  try {
-    const r = await fetch(`${API_BASE}/ajustar/`, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
-    const ct = r.headers.get('content-type')||'';
-    if (!ct.includes('application/json')) throw new Error('Resposta não-JSON');
-    const js = await r.json();
-    if (!r.ok || js.ok === false) { msg.innerHTML = `<span class="err">Erro: ${js.detail || r.statusText}</span>`; return; }
-    produtoSel.estdisponivel = (js.saldo ?? js.saldo_atual ?? js.estdisponivel ?? produtoSel.estdisponivel);
-    const stk = document.getElementById('stk');
-    if (stk) stk.textContent = fmt(produtoSel.estdisponivel);
-    msg.innerHTML = `<div style="background:#d4edda; border:1px solid #c3e6cb; border-radius:12px; padding:12px; text-align:center"><div style="color:var(--ok); font-weight:700">✓ Ajuste aplicado</div><div>Novo estoque: <strong>${fmt(produtoSel.estdisponivel)}</strong></div></div>`;
-  } catch(e){
-    msg.innerHTML = `<span class="err">✗ Falha: ${e}</span>`;
-  }
-}
-
 /* ====== AJUSTE EM LOTE ====== */
 async function confirmarLote(){
   if (!pendingItems.length) return;
   const usuario = getSavedUser();
-  if (!usuario) { msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>'; showLoginModal(); return; }
+  if (!usuario) { 
+    msg.innerHTML = '<span class="err">Faça login para ajustar estoque</span>'; 
+    showLoginModal(); 
+    return; 
+  }
 
   const body = {
     empresa: Number(document.getElementById('empresa').value || 1),
@@ -1075,7 +875,11 @@ async function confirmarLote(){
     usuario_id: Number(usuario.id),
     usuario_label: usuario.label,
     motivo: 'Ajuste em lote via PWA',
-    items: pendingItems.map(it => ({ idproduto: it.idproduto, delta: Number(it.delta), motivo: it.motivo || '' }))
+    items: pendingItems.map(it => ({ 
+      idproduto: it.idproduto, 
+      delta: Number(it.delta), 
+      motivo: it.motivo || '' 
+    }))
   };
 
   const confirmBtn = document.getElementById('btnConfirmLote');
@@ -1091,7 +895,11 @@ async function confirmarLote(){
     });
     const ct = r.headers.get('content-type') || '';
     const js = ct.includes('application/json') ? await r.json() : {};
-    if (!r.ok) { msg.innerHTML = `<span class="err">Erro lote: ${js.detail || r.statusText}</span>`; return; }
+    
+    if (!r.ok) { 
+      msg.innerHTML = `<span class="err">Erro lote: ${js.detail || r.statusText}</span>`; 
+      return; 
+    }
 
     if (Array.isArray(js.results)) {
       const found = js.results.find(x => Number(x.idproduto) === Number(produtoSel && produtoSel.idproduto));
@@ -1113,60 +921,72 @@ async function confirmarLote(){
   }
 }
 
-/* ====== MODAIS SIMPLES ====== */
-function showConfirmModal(acao, quantidade){
-  const acaoTexto = acao === 'add' ? 'Adicionar' : 'Remover';
-  const acaoDescricao = acao === 'add' ? 'adicionar' : 'remover';
-  confirmTitle.textContent = 'Confirmar Ajuste';
-  confirmAction.textContent = `${acaoTexto} ${quantidade} unidade${quantidade > 1 ? 's' : ''}`;
-  confirmQuantity.textContent = quantidade;
-  confirmMessage.textContent = `Deseja ${acaoDescricao} ${quantidade} unidade${quantidade > 1 ? 's' : ''} no estoque?`;
-  acaoPendente = { tipo: acao, quantidade: quantidade };
-  confirmOverlay.style.display = 'flex';
-}
-function hideConfirmModal(){ confirmOverlay.style.display = 'none'; acaoPendente = null; }
-
 /* ====== EVENTOS ====== */
 btnBuscar.addEventListener('click', buscar);
 q.addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
-
-btnScanner.addEventListener('click', iniciarScanner);
-btnStopScanner.addEventListener('click', pararScanner);
-barcodeImage.addEventListener('change', (e)=> { const f = e.target.files[0]; if (f) processarImagem(f); });
 
 btnIncrease.addEventListener('click', increaseQuantity);
 btnDecrease.addEventListener('click', decreaseQuantity);
 
 btnAdd.addEventListener('click', () => {
-  if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
+  if (!produtoSel) { 
+    msg.innerHTML = '<span class="err">Selecione um produto.</span>'; 
+    return; 
+  }
   const qty = Math.max(1, parseInt(quantityDisplay.value, 10) || 1);
-  pendingItems.push({ idproduto: produtoSel.idproduto, descricao: produtoSel.descricao, delta: qty });
+  pendingItems.push({ 
+    idproduto: produtoSel.idproduto, 
+    descricao: produtoSel.descricao, 
+    delta: qty 
+  });
   renderPending();
 });
+
 btnRem.addEventListener('click', () => {
-  if (!produtoSel) { msg.innerHTML = '<span class="err">Selecione um produto.</span>'; return; }
+  if (!produtoSel) { 
+    msg.innerHTML = '<span class="err">Selecione um produto.</span>'; 
+    return; 
+  }
   const qty = Math.max(1, parseInt(quantityDisplay.value, 10) || 1);
-  pendingItems.push({ idproduto: produtoSel.idproduto, descricao: produtoSel.descricao, delta: -qty });
+  pendingItems.push({ 
+    idproduto: produtoSel.idproduto, 
+    descricao: produtoSel.descricao, 
+    delta: -qty 
+  });
   renderPending();
 });
 
-btnConfirmAction.addEventListener('click', () => {
-  if (!acaoPendente) return;
-  const delta = acaoPendente.tipo === 'add' ? acaoPendente.quantidade : -acaoPendente.quantidade;
-  ajustar(delta);
+btnOpenLogin.addEventListener('click', ()=> { 
+  carregarUsuariosModal().finally(()=> showLoginModal()); 
 });
-btnCancelConfirm.addEventListener('click', hideConfirmModal);
 
-btnOpenLogin.addEventListener('click', ()=> { carregarUsuariosModal().finally(()=> showLoginModal()); });
-btnModalLogin.addEventListener('click', async ()=> { await doLogin(); });
+btnModalLogin.addEventListener('click', async ()=> { 
+  await doLogin(); 
+});
+
 btnCancelLogin.addEventListener('click', ()=> hideLoginModal());
-modalSenha.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); btnModalLogin.click(); }});
-modalUsuario.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); modalSenha.focus(); }});
+
+modalSenha.addEventListener('keydown', (e) => { 
+  if (e.key === 'Enter') { 
+    e.preventDefault(); 
+    btnModalLogin.click(); 
+  }
+});
+
+modalUsuario.addEventListener('keydown', (e) => { 
+  if (e.key === 'Enter') { 
+    e.preventDefault(); 
+    modalSenha.focus(); 
+  }
+});
+
 modalUsuario.addEventListener('change', ()=> setTimeout(()=> modalSenha.focus(), 50));
+
 btnLogoutTop.addEventListener('click', ()=> logoutAndShowLogin());
 
-loginOverlay.addEventListener('click', (e)=> { if (e.target === loginOverlay) hideLoginModal(); });
-confirmOverlay.addEventListener('click', (e)=> { if (e.target === confirmOverlay) hideConfirmModal(); });
+loginOverlay.addEventListener('click', (e)=> { 
+  if (e.target === loginOverlay) hideLoginModal(); 
+});
 
 /* ====== INICIALIZAÇÃO ====== */
 lista.innerHTML = '<li>Digite e clique em Buscar…</li>';
@@ -1177,7 +997,10 @@ renderPending();
   const saved = getSavedUser();
   if (saved) setCurrentUser(saved.id, saved.label);
   else setCurrentUser(null);
+  
+  await carregarEmpresas();
   await carregarUsuariosModal();
+  
   if (!saved) showLoginModal();
 })();
 
