@@ -1,6 +1,7 @@
 # config/settings.py
 from pathlib import Path
 import os
+import sys
 from dotenv import load_dotenv
 
 # --- Paths
@@ -9,15 +10,22 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # --- .env
 load_dotenv(BASE_DIR / '.env')
 
+# Quando empacotado com PyInstaller, os arquivos adicionados via --add-data
+# são extraídos em runtime para sys._MEIPASS. Detectamos isso e expomos
+# um caminho BUNDLED_DATA para apontar para os templates/static empacotados.
+if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+    BUNDLED_DATA = Path(sys._MEIPASS)
+else:
+    BUNDLED_DATA = BASE_DIR
+
 # --- Básico
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-insecure-change-me')
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 ALLOWED_HOSTS = [
+    "*",
     "localhost",
     "127.0.0.1",
-    "192.168.1.2",
 ]
-
 
 # --- Apps
 INSTALLED_APPS = [
@@ -58,11 +66,28 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 ROOT_URLCONF = 'config.urls'
 
+# --- Templates: incluí caminhos para dev e para o bundle (sys._MEIPASS)
+# prioridade: BUNDLED_DATA/templates (quando empacotado) -> BASE_DIR/templates -> BASE_DIR/web/templates
+_templates_candidates = [
+    BUNDLED_DATA / "templates",            # -> sys._MEIPASS/templates (onefile extraction)
+    BASE_DIR / "templates",                # -> projeto raiz/templates/
+    BASE_DIR / "web" / "templates",        # -> projeto/web/templates/
+]
+
+# transforma em strings e remove duplicatas mantendo ordem
+_TEMPLATES_DIRS = []
+for p in _templates_candidates:
+    sp = str(p)
+    if p.exists() and sp not in _TEMPLATES_DIRS:
+        _TEMPLATES_DIRS.append(sp)
+# se nenhum existir fisicamente, ainda adicionamos os caminhos (útil no exe onde extraction ocorre em runtime)
+if not _TEMPLATES_DIRS:
+    _TEMPLATES_DIRS = [str(p) for p in _templates_candidates]
+
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        # >>> ADICIONE ESTA LINHA <<<
-        'DIRS': [BASE_DIR / 'templates'],   # agora ele procura em RAIZ/templates/
+        'DIRS': _TEMPLATES_DIRS,
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -74,7 +99,6 @@ TEMPLATES = [
         },
     },
 ]
-
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
@@ -103,5 +127,18 @@ USE_TZ = True
 # --- Static
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+# Pontos adicionais onde o Django procura por arquivos estáticos (dev + bundle)
+_static_candidates = [
+    BUNDLED_DATA / "static",           # quando empacotado -> sys._MEIPASS/static
+    BASE_DIR / "static",               # projeto raiz/static
+    BASE_DIR / "web" / "static",       # web/static
+]
+
+STATICFILES_DIRS = []
+for p in _static_candidates:
+    sp = str(p)
+    if sp not in STATICFILES_DIRS:
+        STATICFILES_DIRS.append(sp)
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

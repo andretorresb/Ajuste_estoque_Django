@@ -1,0 +1,14 @@
+2025-10-07 16:07:00,694 - INFO - Using settings module (quick): config.settings
+2025-10-07 16:07:00,817 - INFO - Configuração carregada: C:\Ello\Dados\MARTINAZZO.ELLO
+2025-10-07 16:07:00,818 - INFO - Conectando ao banco de dados Firebird...
+2025-10-07 16:07:02,873 - INFO - Conexão estabelecida com sucesso.
+2025-10-07 16:07:02,878 - INFO - TEMPLATES DIRS ajustados: ['C:\\GIT HUB\\ajust\\web\\templates', 'C:\\GIT HUB\\ajust\\web\\templates\\web']
+2025-10-07 16:07:03,858 - INFO - Servidor aguardando conexões na porta 8000 (host 0.0.0.0). IP detectado: 192.168.1.20
+2025-10-07 16:07:03,861 - INFO - Serving on http://0.0.0.0:8000
+2025-10-07 16:07:15,658 - INFO - Conectando ao banco de dados Firebird...
+2025-10-07 16:07:17,707 - INFO - Conexão estabelecida com sucesso.
+2025-10-07 16:07:17,780 - INFO - Conectando ao banco de dados Firebird...
+2025-10-07 16:07:17,809 - WARNING - Not Found: /static/manifest.json
+2025-10-07 16:07:19,817 - INFO - Conexão estabelecida com sucesso.
+2025-10-07 16:07:19,906 - INFO - Conectando ao banco de dados Firebird...
+2025-10-07 16:07:21,952 - INFO - Conexão estabelecida com sucesso.
