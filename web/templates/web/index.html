@@ -402,6 +402,14 @@
           </div>
           
           <div class="rowline">
+            <!-- ADICIONADO: filtro de busca -->
+            <select id="searchMode" title="Filtro de busca" style="width:160px; font-weight:600;">
+              <option value="auto">Auto</option>
+              <option value="id">ID</option>
+              <option value="codb">Código de Barras</option>
+              <option value="desc">Descrição</option>
+            </select>
+
             <input id="q" type="search" inputmode="search" autocomplete="off"
                placeholder="Descrição (ex.: coca) ou código de barras…" style="flex:1" />
             <button id="btnBuscar" class="btn">Buscar</button>
@@ -505,6 +513,8 @@ const btnDecrease = document.getElementById('btnIncrease');
 const btnAdd = document.getElementById('btnAdd');
 const btnRem = document.getElementById('btnRem');
 const btnBuscar = document.getElementById('btnBuscar');
+
+const searchMode = document.getElementById('searchMode'); // novo filtro
 
 /* ====== STATE ====== */
 let produtoSel = null;
@@ -796,9 +806,43 @@ quantityDisplay.addEventListener('keydown', (e) => {
   }
 });
 
-/* ====== BUSCAR PRODUTOS ====== */
+/* ====== BUSCAR PRODUTOS (AJUSTADO PARA FILTRO) ====== */
+function updateSearchPlaceholder() {
+  const mode = (searchMode && searchMode.value) ? searchMode.value : 'auto';
+  if (mode === 'id') q.placeholder = 'Pesquisar por ID (ex: 15)';
+  else if (mode === 'codb') q.placeholder = 'Pesquisar por código de barras (ex: 1100100000159)';
+  else if (mode === 'desc') q.placeholder = 'Pesquisar por descrição (ex: parafuso)';
+  else q.placeholder = 'Descrição (ex.: coca) ou código de barras…';
+}
+
 async function buscar(){
-  const url = `${API_BASE}/produtos/?limit=25&query=${encodeURIComponent(q.value||'')}`;
+  // monta query de acordo com o filtro selecionado
+  let modo = (searchMode && searchMode.value) ? searchMode.value : 'auto';
+  let raw = (q.value || '').toString().trim();
+
+  let queryToSend = raw;
+
+  if (raw) {
+    if (modo === 'id') {
+      // prefixa com id:
+      if (!/^id:/i.test(raw)) queryToSend = `id:${raw}`;
+      else queryToSend = raw;
+    } else if (modo === 'codb') {
+      // prefixa com codb:
+      if (!/^(codb:|codbarra:)/i.test(raw)) queryToSend = `codb:${raw}`;
+      else queryToSend = raw;
+    } else if (modo === 'desc') {
+      if (!/^(desc:|descricao:)/i.test(raw)) queryToSend = `desc:${raw}`;
+      else queryToSend = raw;
+    } else {
+      // auto: envia o que o usuário digitou (backend decide)
+      queryToSend = raw;
+    }
+  } else {
+    queryToSend = '';
+  }
+
+  const url = `${API_BASE}/produtos/?limit=25&query=${encodeURIComponent(queryToSend)}`;
   lista.innerHTML = '<li>Carregando…</li>';
   try {
     const r = await fetch(url);
@@ -925,6 +969,10 @@ async function confirmarLote(){
 btnBuscar.addEventListener('click', buscar);
 q.addEventListener('keydown', e => { if (e.key === 'Enter') buscar(); });
 
+if (searchMode) {
+  searchMode.addEventListener('change', updateSearchPlaceholder);
+}
+
 btnIncrease.addEventListener('click', increaseQuantity);
 btnDecrease.addEventListener('click', decreaseQuantity);
 
@@ -1002,6 +1050,9 @@ renderPending();
   await carregarUsuariosModal();
   
   if (!saved) showLoginModal();
+
+  // set placeholder inicial do filtro
+  updateSearchPlaceholder();
 })();
 
 /* PWA registration */
