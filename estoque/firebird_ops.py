@@ -199,12 +199,48 @@ def buscar_empresas_TGEREMPRESA():
 
 # ---------- BUSCA LISTA ----------
 def buscar_produtos_TESTPRODUTO(query: str | None, empresa: str | int | None, limit: int = 25):
-    q_raw = (query or "").strip()
-    q_like = f"%{q_raw.upper()}%" if q_raw else None
+    """
+    Busca produtos:
+      - 'id:123'         => busca exata por ID
+      - 'codb:7890'      => busca exata por CODBARRAS
+      - 'desc:parafuso'  => busca por DESCRICAO (LIKE)
+      - modo auto:
+         * apenas dígitos curtos (<= ID_DIGIT_THRESHOLD) -> tenta ID exato, CODBARRAS exato, DESCRICAO LIKE
+         * dígitos longos -> CODBARRAS exato OR DESCRICAO LIKE
+         * texto -> DESCRICAO LIKE OR CODBARRAS exact
+    """
+    import logging
+    logger = logging.getLogger(__name__)
 
+    q_raw = (query or "").strip()
+    q_upper = q_raw.upper()
     params = []
-    # Quando empresa fornecida, faz LEFT JOIN apenas para IDALMOX = 1 (não somar outros almox)
-    if empresa is not None:
+
+    # Threshold para considerar dígitos curtos como possível ID
+    ID_DIGIT_THRESHOLD = 6
+
+    # Detectar prefixos explícitos
+    mode = "auto"
+    q_val = q_raw
+    if q_raw:
+        low = q_raw.lower()
+        if low.startswith("id:"):
+            mode = "id"
+            q_val = q_raw.split(":", 1)[1].strip()
+        elif low.startswith("codb:") or low.startswith("codbarra:") or low.startswith("barcode:"):
+            mode = "codb"
+            q_val = q_raw.split(":", 1)[1].strip()
+        elif low.startswith("desc:") or low.startswith("descricao:"):
+            mode = "desc"
+            q_val = q_raw.split(":", 1)[1].strip()
+        else:
+            mode = "auto"
+            q_val = q_raw
+
+    has_empresa = empresa is not None
+
+    # Monta SQL base
+    if has_empresa:
         sql = """
             SELECT
                 P.IDPRODUTO,
@@ -232,13 +268,64 @@ def buscar_produtos_TESTPRODUTO(query: str | None, empresa: str | int | None, li
             WHERE 1 = 1
         """
 
-    if q_raw:
-        sql += " AND (UPPER(P.DESCRICAO) LIKE ? OR COALESCE(P.CODBARRAS,'') = ?)"
-        params += [q_like, q_raw]
+    # Aplicar filtros conforme modo detectado
+    if mode == "id":
+        # id:NNN -> somente ID exato
+        try:
+            id_val = int(q_val)
+        except Exception:
+            # se não for int válido, não retorna nada
+            return []
+        sql += " AND P.IDPRODUTO = ?"
+        params.append(id_val)
+        limit_literal = max(1, int(limit or 1))
+        sql += f" ORDER BY P.IDPRODUTO ROWS 1 TO {limit_literal}"
 
-    sql += " ORDER BY P.IDPRODUTO ROWS 1 TO ?"
-    params.append(int(limit))
+    elif mode == "codb":
+        # codb:... -> CODBARRAS exato
+        cod = q_val
+        sql += " AND COALESCE(P.CODBARRAS,'') = ?"
+        params.append(cod)
+        limit_literal = max(1, int(limit or 25))
+        sql += f" ORDER BY P.IDPRODUTO ROWS 1 TO {limit_literal}"
 
+    elif mode == "desc":
+        # desc:... -> descrição LIKE
+        txt = q_val.upper()
+        sql += " AND UPPER(P.DESCRICAO) LIKE ?"
+        params.append(f"%{txt}%")
+        limit_literal = max(1, int(limit or 25))
+        sql += f" ORDER BY P.IDPRODUTO ROWS 1 TO {limit_literal}"
+
+    else:
+        # modo auto (sem prefixo)
+        if not q_val:
+            # sem query: retorna top N (comportamento antigo)
+            limit_literal = max(1, int(limit or 25))
+            sql += f" ORDER BY P.IDPRODUTO ROWS 1 TO {limit_literal}"
+        else:
+            # somente dígitos?
+            if q_val.isdigit():
+                if len(q_val) <= ID_DIGIT_THRESHOLD:
+                    # curto: pode ser ID; procurar por ID exato, codbarra exato ou descricao LIKE
+                    sql += " AND (P.IDPRODUTO = ? OR COALESCE(P.CODBARRAS,'') = ? OR UPPER(P.DESCRICAO) LIKE ?)"
+                    params += [int(q_val), q_val, f"%{q_val.upper()}%"]
+                else:
+                    # longo: provavelmente código de barras
+                    sql += " AND (COALESCE(P.CODBARRAS,'') = ? OR UPPER(P.DESCRICAO) LIKE ?)"
+                    params += [q_val, f"%{q_val.upper()}%"]
+            else:
+                # texto com letras: procurar descrição LIKE e também codbarra exact (caso usuário cole alfanumérico)
+                sql += " AND (UPPER(P.DESCRICAO) LIKE ? OR COALESCE(P.CODBARRAS,'') = ?)"
+                params += [f"%{q_val.upper()}%", q_val]
+
+            limit_literal = max(1, int(limit or 25))
+            sql += f" ORDER BY P.IDPRODUTO ROWS 1 TO {limit_literal}"
+
+    logger.debug("buscar_produtos sql: %s", sql)
+    logger.debug("buscar_produtos params: %r", params)
+
+    # executar query
     with fb_connect() as con:
         cur = con.cursor()
         cur.execute(sql, tuple(params))
